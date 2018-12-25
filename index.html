@@ -21,20 +21,12 @@
 <body>
 <div id="container" style="min-width: 310px; max-width: 800px; height: 400px; margin: 0 auto"></div>
 
-<div id="button">Button</div>
+<input type="button" id="button" value="Rotate">
 
 <script>
-    var datas = [{
-        categories: ['Africa', 'America', 'Asia', 'Europe', 'Oceania'],
-        data: [100, 200, 300, 400, 500]
-    }, {
-        categories: ['Oceania', 'Africa', 'America', 'Asia', 'Europe'],
-        data: [100, 200, 300, 500, 600]
-    }];
-
-    var series = [{
-        name: 'Year 2016',
-        data: [1216, 1001, 4436, 738, 40]
+    var initial_series = [{
+        name: 'Series 1',
+        data: [100, 100, 100, 100, 100]
     }];
 
     var options = {
@@ -42,10 +34,7 @@
             type: 'bar'
         },
         title: {
-            text: 'Historic World Population by Region'
-        },
-        subtitle: {
-            text: 'Source: <a href="https://en.wikipedia.org/wiki/World_population">Wikipedia.org</a>'
+            text: 'Test'
         },
         xAxis: {
             categories: ['Africa', 'America', 'Asia', 'Europe', 'Oceania'],
@@ -56,15 +45,8 @@
         yAxis: {
             min: 0,
             title: {
-                text: 'Population (millions)',
-                align: 'high'
-            },
-            labels: {
-                overflow: 'justify'
+                text: null
             }
-        },
-        tooltip: {
-            valueSuffix: ' millions'
         },
         plotOptions: {
             bar: {
@@ -73,37 +55,39 @@
                 }
             }
         },
-        legend: {
-            layout: 'vertical',
-            align: 'right',
-            verticalAlign: 'top',
-            x: -40,
-            y: 80,
-            floating: true,
-            borderWidth: 1,
-            backgroundColor: ((Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'),
-            shadow: true
-        },
-        credits: {
-            enabled: false
-        },
-        series: series
+        exporting: false,
+        credits: false,
+        legend: false,
+        series: initial_series
     };
 
     var chart = Highcharts.chart('container', options);
 
-    window.click_num = 0;
+    function rotate(array, times) {
+        while (times--) {
+            var temp = array.shift();
+            array.push(temp)
+        }
+    }
 
-    document.getElementById("button").addEventListener("click", function() {
-        var data = datas[window.click_num];
-        window.click_num++;
+    window.data = {
+        categories: ['Africa', 'America', 'Asia', 'Europe', 'Oceania'],
+        y_values: [100, 200, 300, 400, 500],
+        colors: ['#DC4D3A', '#E93D3F', '#83C6C7', '#46D388', '#D1D785']
+    };
 
-        for (var i = 0; i < data['data'].length; i++) {
-            chart.series[0].data[i].update({y: data['data'][i]});
+    document.getElementById("button").addEventListener("click", function () {
+        for (var i = 0; i < data['y_values'].length; i++) {
+            chart.series[0].data[i].update({y: data['y_values'][i]});
+            chart.series[0].data[i].update({color: data['colors'][i]});
         }
 
         chart.xAxis[0].update({categories: data['categories']});
-        }, false);
+
+        rotate(data['y_values'], 1);
+        rotate(data['categories'], 1);
+        rotate(data['colors'], 1);
+    }, false);
 </script>
 </body>
 </html>
