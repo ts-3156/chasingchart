@@ -21,9 +21,23 @@
 <body>
 <div id="container" style="min-width: 310px; max-width: 800px; height: 400px; margin: 0 auto"></div>
 
-<script>
+<div id="button">Button</div>
 
-    Highcharts.chart('container', {
+<script>
+    var datas = [{
+        categories: ['Africa', 'America', 'Asia', 'Europe', 'Oceania'],
+        data: [100, 200, 300, 400, 500]
+    }, {
+        categories: ['Oceania', 'Africa', 'America', 'Asia', 'Europe'],
+        data: [100, 200, 300, 500, 600]
+    }];
+
+    var series = [{
+        name: 'Year 2016',
+        data: [1216, 1001, 4436, 738, 40]
+    }];
+
+    var options = {
         chart: {
             type: 'bar'
         },
@@ -73,20 +87,23 @@
         credits: {
             enabled: false
         },
-        series: [{
-            name: 'Year 1800',
-            data: [107, 31, 635, 203, 2]
-        }, {
-            name: 'Year 1900',
-            data: [133, 156, 947, 408, 6]
-        }, {
-            name: 'Year 2000',
-            data: [814, 841, 3714, 727, 31]
-        }, {
-            name: 'Year 2016',
-            data: [1216, 1001, 4436, 738, 40]
-        }]
-    });
+        series: series
+    };
+
+    var chart = Highcharts.chart('container', options);
+
+    window.click_num = 0;
+
+    document.getElementById("button").addEventListener("click", function() {
+        var data = datas[window.click_num];
+        window.click_num++;
+
+        for (var i = 0; i < data['data'].length; i++) {
+            chart.series[0].data[i].update({y: data['data'][i]});
+        }
+
+        chart.xAxis[0].update({categories: data['categories']});
+        }, false);
 </script>
 </body>
 </html>
