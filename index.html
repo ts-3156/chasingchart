@@ -52,7 +52,7 @@
 <div id="container" style="min-width: 310px; max-width: 800px; height: 400px; margin: 0 auto"></div>
 
 <div class="tau">
-    <button id="button" class="btn btn-primary">Rotate</button>
+    <button id="button" class="btn btn-primary">Start</button>
 </div>
 
 <script src="https://code.highcharts.com/highcharts.js"></script>
@@ -170,7 +170,7 @@
     })();
 
     var countUp = function (nextSeries, duration, animation, callback) {
-        var maxLoopCount = 5;
+        var maxLoopCount = 12;
         var interval = duration / maxLoopCount;
         var loopCount = 0;
 
@@ -230,7 +230,7 @@
         }, interval);
     };
 
-    var rotateBars = function (callback) {
+    var rotateBars = function (duration, callback) {
         var points = chart.series[0].points;
         var ticks = chart.xAxis[0].ticks;
 
@@ -276,7 +276,7 @@
         }
     };
 
-    document.getElementById("button").addEventListener("click", function (event) {
+    var clicked = function (event) {
         if (input.length - 1 <= inputIndex) {
             return;
         }
@@ -294,13 +294,17 @@
         }
 
         countUp(nextSeries, duration, true, function () {
-            rotateBars(function () {
+            rotateBars(duration - 100, function () {
                 reDraw(nextSeries, input[inputIndex].categories, options, function () {
                     event.target.classList.remove("btn-disabled");
+                    event.target.click();
                 });
             });
         });
+    };
 
+    document.getElementById("button").addEventListener("click", function (event) {
+        clicked(event);
     }, false);
 </script>
 </body>
