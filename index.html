@@ -13,21 +13,58 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
     <link rel="shortcut icon" href="">
-
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="https://code.highcharts.com/modules/exporting.js"></script>
-    <script src="https://code.highcharts.com/modules/export-data.js"></script>
 </head>
 <body>
 <div id="container" style="min-width: 310px; max-width: 800px; height: 400px; margin: 0 auto"></div>
 
 <input type="button" id="button" value="Rotate">
 
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+
 <script>
-    var initial_series = [{
-        name: 'Series 1',
-        data: [100, 100, 100, 100, 100]
+    var duration = 500;
+    var inputIndex = 0;
+
+    var formatter = function () {
+        return Highcharts.numberFormat(this.y);
+    };
+
+    var deepCopy = function (obj) {
+        return JSON.parse(JSON.stringify(obj));
+    };
+
+    var input = [{
+        values: [150, 140, 130, 120, 110],
+        categories: ['Africa', 'America', 'Asia', 'Europe', 'Oceania']
+    }, {
+        values: [160, 150, 130, 120, 115],
+        categories: ['America', 'Africa', 'Asia', 'Europe', 'Oceania']
+    }, {
+        values: [160, 155, 130, 120, 115],
+        categories: ['America', 'Africa', 'Asia', 'Europe', 'Oceania']
+    }, {
+        values: [160, 155, 150, 120, 115],
+        categories: ['America', 'Africa', 'Asia', 'Europe', 'Oceania']
+    }, {
+        values: [160, 155, 150, 130, 120],
+        categories: ['America', 'Africa', 'Asia', 'Oceania', 'Europe']
     }];
+
+    var baseSeries = [{
+        name: 'Series 1',
+        animation: {duration: duration},
+        data: null,
+        dataLabels: {
+            enabled: true,
+            defer: true
+        }
+    }];
+
+    var series = deepCopy(baseSeries);
+    series[0].data = input[inputIndex].values;
+    series[0].dataLabels.formatter = formatter;
 
     var options = {
         chart: {
@@ -37,7 +74,7 @@
             text: 'Test'
         },
         xAxis: {
-            categories: ['Africa', 'America', 'Asia', 'Europe', 'Oceania'],
+            categories: input[inputIndex].categories,
             title: {
                 text: null
             }
@@ -48,45 +85,75 @@
                 text: null
             }
         },
-        plotOptions: {
-            bar: {
-                dataLabels: {
-                    enabled: true
-                }
-            }
+        tooltip: {
+            enabled: false
         },
         exporting: false,
         credits: false,
         legend: false,
-        series: initial_series
+        series: series
     };
 
     var chart = Highcharts.chart('container', options);
 
-    function rotate(array, times) {
-        while (times--) {
-            var temp = array.shift();
-            array.push(temp)
-        }
-    }
+    document.getElementById("button").addEventListener("click", function (event) {
+        event.target.setAttribute("disabled", "true");
+        inputIndex++;
 
-    window.data = {
-        categories: ['Africa', 'America', 'Asia', 'Europe', 'Oceania'],
-        y_values: [100, 200, 300, 400, 500],
-        colors: ['#DC4D3A', '#E93D3F', '#83C6C7', '#46D388', '#D1D785']
-    };
+        var nextSeries = deepCopy(baseSeries);
+        nextSeries[0].animation = false;
+        nextSeries[0].data = input[inputIndex].values;
+        nextSeries[0].dataLabels.formatter = formatter;
 
-    document.getElementById("button").addEventListener("click", function () {
-        for (var i = 0; i < data['y_values'].length; i++) {
-            chart.series[0].data[i].update({y: data['y_values'][i]});
-            chart.series[0].data[i].update({color: data['colors'][i]});
-        }
+        var values = [];
+        chart.xAxis[0].categories.forEach(function (c, i) {
+            input[inputIndex].categories.forEach(function (cc, j) {
+                if (c === cc) {
+                    values[i] = nextSeries[0].data[j];
+                }
+            });
+        });
 
-        chart.xAxis[0].update({categories: data['categories']});
+        chart.series[0].setData(values, true, {duration: duration});
 
-        rotate(data['y_values'], 1);
-        rotate(data['categories'], 1);
-        rotate(data['colors'], 1);
+        setTimeout(function () {
+            var points = chart.series[0].points;
+            var ticks = chart.xAxis[0].ticks;
+
+            var sortedPoints = points.slice();
+            sortedPoints.sort(function (a, b) {
+                return b.y - a.y; // 降順ソート
+            });
+
+            points.forEach(function (point, i) {
+                sortedPoints.forEach(function (sPoint, j) {
+                    if (point === sPoint) {
+                        points[i].graphic.animate({
+                            x: points[j].shapeArgs.x
+                        }, {duration: duration});
+
+                        points[i].dataLabel.animate({
+                            y: points[j].dataLabel.y
+                        }, {duration: duration});
+
+                        ticks[i].label.animate({
+                            y: ticks[j].label.xy.y
+                        }, {duration: duration});
+                    }
+                });
+            });
+
+            setTimeout(function () {
+                options.xAxis.categories = input[inputIndex].categories;
+                options.series = nextSeries;
+
+                chart.destroy();
+                chart = Highcharts.chart('container', options);
+
+                event.target.removeAttribute("disabled");
+            }, duration);
+        }, duration);
+
     }, false);
 </script>
 </body>
