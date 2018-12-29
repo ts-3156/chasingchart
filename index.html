@@ -13,11 +13,47 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
     <link rel="shortcut icon" href="">
+
+    <style>
+        /* Original https://labs.loupbrun.ca/buttons/ */
+        .tau .btn {
+            display: inline-block;
+            margin: 6px;
+            font-size: inherit;
+            line-height: 1.42;
+            padding: 1.2em 2.4em;
+            font-weight: normal;
+            border-width: 0;
+            border-style: solid;
+            background: transparent;
+            border-radius: 0;
+            cursor: pointer;
+            font-family: "Booster Next FY", "Avenir Next", Avenir, sans-serif;
+            user-select: none;
+            vertical-align: bottom;
+            transition: background-color 0.3s; }
+        .tau .btn.btn-disabled {
+            cursor: not-allowed;
+            opacity: 0.8; }
+        .tau .btn.btn-disabled:active {
+            opacity: 0.6; }
+        .tau .btn:active {
+            transition-duration: 0.1s; }
+
+        .tau .btn-primary {
+            background-color: #52C11F;
+            color: #E6EAEF; }
+        .tau .btn-primary:hover {
+            background-color: #59d322; }
+        .tau .btn-primary:active {
+            background-color: #4baf1c; }    </style>
 </head>
 <body>
 <div id="container" style="min-width: 310px; max-width: 800px; height: 400px; margin: 0 auto"></div>
 
-<input type="button" id="button" value="Rotate">
+<div class="tau">
+    <button id="button" class="btn btn-primary">Rotate</button>
+</div>
 
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
@@ -97,7 +133,10 @@
     var chart = Highcharts.chart('container', options);
 
     document.getElementById("button").addEventListener("click", function (event) {
-        event.target.setAttribute("disabled", "true");
+        if (input.length - 1 <= inputIndex) {
+            return;
+        }
+        event.target.classList.add("btn-disabled");
         inputIndex++;
 
         var nextSeries = deepCopy(baseSeries);
@@ -122,7 +161,7 @@
 
             var sortedPoints = points.slice();
             sortedPoints.sort(function (a, b) {
-                return b.y - a.y; // 降順ソート
+                return b.y - a.y;
             });
 
             points.forEach(function (point, i) {
@@ -150,7 +189,7 @@
                 chart.destroy();
                 chart = Highcharts.chart('container', options);
 
-                event.target.removeAttribute("disabled");
+                event.target.classList.remove("btn-disabled");
             }, duration);
         }, duration);
 
