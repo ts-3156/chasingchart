@@ -63,16 +63,17 @@
 <script>
     var duration = 500;
     var inputIndex = 0;
+    var colors = ["#7cb5ec", "#434348", "#90ed7d", "#f7a35c", "#8085e9", "#f15c80", "#e4d354", "#2b908f", "#f45b5b", "#91e8e1"];
 
     var formatter = function () {
         // return Highcharts.numberFormat(this.y, 0, '', ',');
         var v = this.y;
         if (v > 1000000000) {
-            v = Math.floor(v / 1000000000) + "G"
+            v = Math.floor(v / 1000000000) + "G";
         } else if (v > 1000000) {
-            v = Math.floor(v / 1000000) + "M"
+            v = Math.floor(v / 1000000) + "M";
         } else if (v > 1000) {
-            v = Math.floor(v / 1000) + "K"
+            v = Math.floor(v / 1000) + "K";
         }
         return v;
     };
@@ -81,7 +82,7 @@
         return JSON.parse(JSON.stringify(obj));
     };
 
-    // TODO Avoid using lodash
+    // TODO I want to avoid using lodash.
     var merge = function (src1, src2) {
         // return Object.assign(deepCopy(src1), deepCopy(src2));
         return _.merge(deepCopy(src1), deepCopy(src2));
@@ -93,7 +94,7 @@
     var baseSeries = [{
         name: 'Series 1',
         animation: {duration: duration},
-        data: null,
+        data: [],
         dataLabels: {
             align: 'right',
             enabled: true,
@@ -136,7 +137,13 @@
 
     var chart = null;
 
-    (function () {
+    var formatInputData = function (input) {
+        var assignedColors = {};
+
+        input[0].categories.forEach(function (category, i) {
+            assignedColors[category] = colors[i % colors.length];
+        });
+
         var sortedInput = [];
 
         input.forEach(function (elem, i) {
@@ -151,7 +158,7 @@
 
             var sortedElem = {values: [], categories: []};
             ary.forEach(function (obj, i) {
-                sortedElem.values[i] = obj.value;
+                sortedElem.values[i] = {y: obj.value, color: assignedColors[obj.category]};
                 sortedElem.categories[i] = obj.category;
             });
             if (elem.options) {
@@ -163,7 +170,11 @@
             sortedInput[i] = sortedElem;
         });
 
-        input = sortedInput;
+        return sortedInput;
+    };
+
+    (function () {
+        input = formatInputData(input);
 
         var series = deepCopy(baseSeries);
         series[0].data = input[inputIndex].values;
@@ -213,11 +224,11 @@
                 if (loopCount >= maxLoopCount - 1) {
                     tmpValues[i] = nextValues[i];
                 } else {
-                    if (v === nextValues[i]) {
+                    if (v === nextValues[i].y) {
                         tmpValues[i] = v;
                     } else {
-                        var diff = parseFloat(loopCount + 1) * Math.abs(v - nextValues[i]) / maxLoopCount;
-                        if (v < nextValues[i]) {
+                        var diff = parseFloat(loopCount + 1) * Math.abs(v - nextValues[i].y) / maxLoopCount;
+                        if (v < nextValues[i].y) {
                             tmpValues[i] = v + diff;
                         } else {
                             tmpValues[i] = v - diff;
@@ -294,7 +305,6 @@
         inputIndex++;
 
         var nextSeries = deepCopy(baseSeries);
-        nextSeries[0].animation = false;
         nextSeries[0].data = input[inputIndex].values;
         nextSeries[0].dataLabels.formatter = formatter;
 
@@ -303,8 +313,9 @@
             options = merge(options, input[inputIndex].options);
         }
 
-        countUp(nextSeries, duration, true, function () {
-            rotateBars(duration - 100, function () {
+        countUp(nextSeries, duration, false, function () {
+            rotateBars(Math.floor(duration * 0.8), function () {
+                nextSeries[0].animation = false;
                 reDraw(nextSeries, input[inputIndex].categories, options, function () {
                     event.target.classList.remove("btn-disabled");
                     clicked(event);
