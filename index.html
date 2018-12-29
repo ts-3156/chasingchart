@@ -88,6 +88,29 @@
         categories: ['America', 'Africa', 'Asia', 'Oceania', 'Europe']
     }];
 
+    var sortedInput = [];
+
+    input.forEach(function (elem, i) {
+        var ary = [];
+        elem.values.forEach(function (value, j) {
+            ary[j] = {value: value, category: elem.categories[j]}
+        });
+
+        ary.sort(function (a, b) {
+            return b.value - a.value;
+        });
+
+        var sortedElem = {values: [], categories: []};
+        ary.forEach(function (obj, i) {
+            sortedElem.values[i] = obj.value;
+            sortedElem.categories[i] = obj.category;
+        });
+
+        sortedInput[i] = sortedElem;
+    });
+
+    input = sortedInput;
+
     var baseSeries = [{
         name: 'Series 1',
         animation: {duration: duration},
