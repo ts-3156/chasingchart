@@ -85,7 +85,7 @@
         categories: ['America', 'Africa', 'Asia', 'Europe', 'Oceania']
     }, {
         values: [160, 155, 150, 130, 120],
-        categories: ['America', 'Africa', 'Asia', 'Oceania', 'Europe']
+        categories: ['America', 'Oceania', 'Europe', 'Asia', 'Africa']
     }];
 
     var sortedInput = [];
@@ -155,6 +155,109 @@
 
     var chart = Highcharts.chart('container', options);
 
+    var countUp = function (nextSeries, duration, animation, callback) {
+        var maxLoopCount = 5;
+        var interval = duration / maxLoopCount;
+        var loopCount = 0;
+
+        var values = [];
+        chart.series[0].data.forEach(function (d, i) {
+            values[i] = d.y;
+        });
+
+        var nextValues = [];
+        chart.xAxis[0].categories.forEach(function (c, i) {
+            input[inputIndex].categories.forEach(function (cc, j) {
+                if (c === cc) {
+                    nextValues[i] = nextSeries[0].data[j];
+                }
+            });
+        });
+
+        if (!animation) {
+            chart.series[0].setData(nextValues, true, {duration: duration});
+            // setTimeout(function () {
+                callback();
+            // }, duration);
+
+            return;
+        }
+
+        var timer = setInterval(function () {
+            var tmpValues = [];
+            values.forEach(function (v, i) {
+                if (loopCount >= maxLoopCount - 1) {
+                    tmpValues[i] = nextValues[i];
+                } else {
+                    if (v === nextValues[i]) {
+                        tmpValues[i] = v;
+                    } else {
+                        var diff = Math.abs(v - nextValues[i]) / maxLoopCount;
+                        tmpValues[i] = v + parseFloat(loopCount) * diff;
+                    }
+                }
+            });
+
+            chart.series[0].setData(tmpValues, true, {duration: interval});
+            loopCount++;
+
+            if (loopCount >= maxLoopCount) {
+                clearInterval(timer);
+                if (callback) {
+                    // setTimeout(function () {
+                        callback();
+                    // }, interval);
+                }
+            }
+        }, interval);
+    };
+
+    var rotateBars = function (callback) {
+        var points = chart.series[0].points;
+        var ticks = chart.xAxis[0].ticks;
+
+        var sortedPoints = points.slice();
+        sortedPoints.sort(function (a, b) {
+            return b.y - a.y;
+        });
+
+        points.forEach(function (point, i) {
+            sortedPoints.forEach(function (sPoint, j) {
+                if (point === sPoint) {
+                    points[i].graphic.animate({
+                        x: points[j].shapeArgs.x
+                    }, {duration: duration});
+
+                    points[i].dataLabel.animate({
+                        y: points[j].dataLabel.y
+                    }, {duration: duration});
+
+                    ticks[i].label.animate({
+                        y: ticks[j].label.xy.y
+                    }, {duration: duration});
+                }
+            });
+        });
+
+        if (callback) {
+            setTimeout(function () {
+                callback();
+            }, duration);
+        }
+    };
+
+    var reDraw = function (series, categories, callback) {
+        options.xAxis.categories = categories;
+        options.series = series;
+
+        chart.destroy();
+        chart = Highcharts.chart('container', options);
+
+        if (callback) {
+            callback();
+        }
+    };
+
     document.getElementById("button").addEventListener("click", function (event) {
         if (input.length - 1 <= inputIndex) {
             return;
@@ -167,54 +270,13 @@
         nextSeries[0].data = input[inputIndex].values;
         nextSeries[0].dataLabels.formatter = formatter;
 
-        var values = [];
-        chart.xAxis[0].categories.forEach(function (c, i) {
-            input[inputIndex].categories.forEach(function (cc, j) {
-                if (c === cc) {
-                    values[i] = nextSeries[0].data[j];
-                }
-            });
-        });
-
-        chart.series[0].setData(values, true, {duration: duration});
-
-        setTimeout(function () {
-            var points = chart.series[0].points;
-            var ticks = chart.xAxis[0].ticks;
-
-            var sortedPoints = points.slice();
-            sortedPoints.sort(function (a, b) {
-                return b.y - a.y;
-            });
-
-            points.forEach(function (point, i) {
-                sortedPoints.forEach(function (sPoint, j) {
-                    if (point === sPoint) {
-                        points[i].graphic.animate({
-                            x: points[j].shapeArgs.x
-                        }, {duration: duration});
-
-                        points[i].dataLabel.animate({
-                            y: points[j].dataLabel.y
-                        }, {duration: duration});
-
-                        ticks[i].label.animate({
-                            y: ticks[j].label.xy.y
-                        }, {duration: duration});
-                    }
+        countUp(nextSeries, duration, false, function () {
+            rotateBars(function () {
+                reDraw(nextSeries, input[inputIndex].categories, function () {
+                    event.target.classList.remove("btn-disabled");
                 });
             });
-
-            setTimeout(function () {
-                options.xAxis.categories = input[inputIndex].categories;
-                options.series = nextSeries;
-
-                chart.destroy();
-                chart = Highcharts.chart('container', options);
-
-                event.target.classList.remove("btn-disabled");
-            }, duration);
-        }, duration);
+        });
 
     }, false);
 </script>
