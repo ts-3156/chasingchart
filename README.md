@@ -4,6 +4,8 @@ Bars chase other bars.
 
 ## Demo
 
+![Gross Domestic Product (GDP)](https://github.com/ts-3156/chasingchart/blob/master/media/gdp.gif)
+
 ![The number of tourists to Japan](https://github.com/ts-3156/chasingchart/blob/master/media/tourists.gif)
 
 ## Getting Started
