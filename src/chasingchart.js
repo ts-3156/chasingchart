@@ -23,6 +23,8 @@ Chasingchart.chart = function (_selector, _options) {
             v = Math.floor(v / 1000000) + "M";
         } else if (v > 10000) {
             v = Math.floor(v / 1000) + "K";
+        } else {
+            v = Math.floor(v);
         }
         return v;
     };
@@ -31,7 +33,7 @@ Chasingchart.chart = function (_selector, _options) {
         return JSON.parse(JSON.stringify(obj));
     };
 
-    // TODO I want to avoid using lodash.
+    // TODO Avoid using lodash
     const merge = function (src1, src2) {
         // return Object.assign(deepCopy(src1), deepCopy(src2));
         return _.merge(deepCopy(src1), deepCopy(src2));
@@ -121,7 +123,7 @@ Chasingchart.chart = function (_selector, _options) {
         return sortedInput;
     };
 
-    const countUp = function (nextSeries, duration, animation, callback) {
+    const countUp = function (nextSeries, duration, animation, startedCallback, finishedCallback) {
         const maxLoopCount = 24;
         const interval = duration / maxLoopCount;
         let loopCount = 0;
@@ -142,14 +144,19 @@ Chasingchart.chart = function (_selector, _options) {
 
         if (!animation) {
             chart.series[0].setData(nextValues, true, {duration: duration});
-            // setTimeout(function () {
-              callback();
-            // }, duration);
+            if (startedCallback) {
+                startedCallback();
+            }
+            if (finishedCallback) {
+                setTimeout(function () {
+                    finishedCallback();
+                }, duration);
+            }
 
             return;
         }
 
-        const timer = setInterval(function () {
+        const animate = function () {
             const tmpValues = [];
             values.forEach(function (v, i) {
                 if (loopCount >= maxLoopCount - 1) {
@@ -173,13 +180,18 @@ Chasingchart.chart = function (_selector, _options) {
 
             if (loopCount >= maxLoopCount) {
                 clearInterval(timer);
-                if (callback) {
-                    // setTimeout(function () {
-                      callback();
-                    // }, interval);
+                if (finishedCallback) {
+                    finishedCallback();
                 }
             }
-        }, interval);
+        };
+
+        animate();
+        const timer = setInterval(animate, interval);
+
+        if (startedCallback) {
+            startedCallback();
+        }
     };
 
     const rotateBars = function (duration, callback) {
@@ -190,6 +202,19 @@ Chasingchart.chart = function (_selector, _options) {
         sortedPoints.sort(function (a, b) {
             return b.y - a.y;
         });
+
+        let isChanged = false;
+        points.forEach(function (point, i) {
+            if (point !== sortedPoints[i]) {
+                isChanged = true;
+            }
+        });
+        if (!isChanged) {
+            if (callback) {
+                callback();
+            }
+            return;
+        }
 
         points.forEach(function (point, i) {
             sortedPoints.forEach(function (sPoint, j) {
@@ -205,6 +230,8 @@ Chasingchart.chart = function (_selector, _options) {
                     ticks[i].label.animate({
                         y: ticks[j].label.xy.y
                     }, {duration: duration});
+
+                    // TODO Should break this loop
                 }
             });
         });
@@ -246,7 +273,9 @@ Chasingchart.chart = function (_selector, _options) {
             options = merge(options, input[inputIndex].options);
         }
 
-        countUp(nextSeries, duration, false, function () {
+        countUp(nextSeries, duration, true, function () {
+            // TODO Can't run countUp and rotateBars simultaneously
+        }, function () {
             rotateBars(Math.floor(duration * 0.8), function () {
                 nextSeries[0].animation = false;
                 reDraw(nextSeries, input[inputIndex].categories, options, function () {
