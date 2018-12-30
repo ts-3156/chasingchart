@@ -4,16 +4,18 @@ Bars chase other bars.
 
 ## Demo
 
-![Gross Domestic Product (GDP)](https://github.com/ts-3156/chasingchart/blob/master/media/gdp.gif)
+| Gross Domestic Product (GDP) | The number of tourists to Japan |
+:----: | :----:
+| [Edit in JSFiddle](https://jsfiddle.net/Shinohara/5tvLcpxu/4/) | [Edit in JSFiddle](https://jsfiddle.net/Shinohara/s0nbcq8p/2/) |
+| ![Gross Domestic Product (GDP)](https://github.com/ts-3156/chasingchart/blob/master/media/gdp.gif) | ![The number of tourists to Japan](https://github.com/ts-3156/chasingchart/blob/master/media/tourists.gif) |
 
-![The number of tourists to Japan](https://github.com/ts-3156/chasingchart/blob/master/media/tourists.gif)
 
 ## Getting Started
 
 ```html
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js"></script>
-<script src="./main.js"></script>
+<script src="https://ts-3156.github.io/chasingchart/chasingchart-1.0.0.js"></script>
 
 <div id="container" style="min-width: 310px; max-width: 800px; height: 400px; margin: 0 auto"></div>
 <button id="button">Start</button>
@@ -31,6 +33,8 @@ Bars chase other bars.
 ```
 
 ## Input data format
+
+[Demo using the below data](https://jsfiddle.net/Shinohara/pxcawzhr/2/)
 
 ```json
 [{
