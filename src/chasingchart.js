@@ -5,18 +5,18 @@
 
  License: github.com/ts-3156/chasingchart/blob/master/LICENSE
 */
-var Chasingchart = {};
+const Chasingchart = {};
 
 Chasingchart.chart = function (_selector, _options) {
     let input = null;
-    var inputIndex = 0;
-    var chart = null;
-    var duration = (_options && _options.duration) || 750;
-    var selector = _selector;
+    let inputIndex = 0;
+    let chart = null;
+    const duration = (_options && _options.duration) || 750;
+    const selector = _selector;
 
-    var formatter = function () {
+    const formatter = function () {
         // return Highcharts.numberFormat(this.y, 0, '', ',');
-        var v = this.y;
+        let v = this.y;
         if (v > 1000000000) {
             v = Math.floor(v / 1000000000) + "G";
         } else if (v > 1000000) {
@@ -27,17 +27,17 @@ Chasingchart.chart = function (_selector, _options) {
         return v;
     };
 
-    var deepCopy = function (obj) {
+    const deepCopy = function (obj) {
         return JSON.parse(JSON.stringify(obj));
     };
 
     // TODO I want to avoid using lodash.
-    var merge = function (src1, src2) {
+    const merge = function (src1, src2) {
         // return Object.assign(deepCopy(src1), deepCopy(src2));
         return _.merge(deepCopy(src1), deepCopy(src2));
     };
 
-    var baseSeries = [{
+    const baseSeries = [{
         name: 'Series 1',
         animation: {duration: duration},
         data: [],
@@ -48,7 +48,7 @@ Chasingchart.chart = function (_selector, _options) {
         }
     }];
 
-    var baseOptions = {
+    const baseOptions = {
         chart: {
             type: 'bar'
         },
@@ -81,18 +81,18 @@ Chasingchart.chart = function (_selector, _options) {
         series: null
     };
 
-    var formatInputData = function (input) {
-        var colors = ["#7cb5ec", "#434348", "#90ed7d", "#f7a35c", "#8085e9", "#f15c80", "#e4d354", "#2b908f", "#f45b5b", "#91e8e1"];
-        var assignedColors = {};
+    const formatInputData = function (input) {
+        const colors = ["#7cb5ec", "#434348", "#90ed7d", "#f7a35c", "#8085e9", "#f15c80", "#e4d354", "#2b908f", "#f45b5b", "#91e8e1"];
+        const assignedColors = {};
 
         input[0].categories.forEach(function (category, i) {
             assignedColors[category] = colors[i % colors.length];
         });
 
-        var sortedInput = [];
+        const sortedInput = [];
 
         input.forEach(function (elem, i) {
-            var ary = [];
+            const ary = [];
             elem.values.forEach(function (value, j) {
                 ary[j] = {value: value, category: elem.categories[j]}
             });
@@ -101,7 +101,7 @@ Chasingchart.chart = function (_selector, _options) {
                 return b.value - a.value;
             });
 
-            var sortedElem = {values: [], categories: []};
+            const sortedElem = {values: [], categories: []};
             ary.forEach(function (obj, i) {
                 sortedElem.values[i] = {y: obj.value, color: assignedColors[obj.category]};
                 sortedElem.categories[i] = obj.category;
@@ -118,17 +118,17 @@ Chasingchart.chart = function (_selector, _options) {
         return sortedInput;
     };
 
-    var countUp = function (nextSeries, duration, animation, callback) {
-        var maxLoopCount = 24;
-        var interval = duration / maxLoopCount;
-        var loopCount = 0;
+    const countUp = function (nextSeries, duration, animation, callback) {
+        const maxLoopCount = 24;
+        const interval = duration / maxLoopCount;
+        let loopCount = 0;
 
-        var values = [];
+        const values = [];
         chart.series[0].data.forEach(function (d, i) {
             values[i] = d.y;
         });
 
-        var nextValues = [];
+        const nextValues = [];
         chart.xAxis[0].categories.forEach(function (c, i) {
             input[inputIndex].categories.forEach(function (cc, j) {
                 if (c === cc) {
@@ -146,8 +146,8 @@ Chasingchart.chart = function (_selector, _options) {
             return;
         }
 
-        var timer = setInterval(function () {
-            var tmpValues = [];
+        const timer = setInterval(function () {
+            const tmpValues = [];
             values.forEach(function (v, i) {
                 if (loopCount >= maxLoopCount - 1) {
                     tmpValues[i] = nextValues[i];
@@ -155,7 +155,7 @@ Chasingchart.chart = function (_selector, _options) {
                     if (v === nextValues[i].y) {
                         tmpValues[i] = v;
                     } else {
-                        var diff = parseFloat(loopCount + 1) * Math.abs(v - nextValues[i].y) / maxLoopCount;
+                        const diff = parseFloat(loopCount + 1) * Math.abs(v - nextValues[i].y) / maxLoopCount;
                         if (v < nextValues[i].y) {
                             tmpValues[i] = v + diff;
                         } else {
@@ -179,11 +179,11 @@ Chasingchart.chart = function (_selector, _options) {
         }, interval);
     };
 
-    var rotateBars = function (duration, callback) {
-        var points = chart.series[0].points;
-        var ticks = chart.xAxis[0].ticks;
+    const rotateBars = function (duration, callback) {
+        const points = chart.series[0].points;
+        const ticks = chart.xAxis[0].ticks;
 
-        var sortedPoints = points.slice();
+        const sortedPoints = points.slice();
         sortedPoints.sort(function (a, b) {
             return b.y - a.y;
         });
@@ -213,7 +213,7 @@ Chasingchart.chart = function (_selector, _options) {
         }
     };
 
-    var reDraw = function (series, categories, options, callback) {
+    const reDraw = function (series, categories, options, callback) {
         options.xAxis.categories = categories;
         options.series = series;
 
@@ -225,7 +225,7 @@ Chasingchart.chart = function (_selector, _options) {
         }
     };
 
-    var update = function (callback) {
+    const update = function (callback) {
         if (input.length - 1 <= inputIndex) {
             if (callback) {
                 callback();
@@ -234,11 +234,11 @@ Chasingchart.chart = function (_selector, _options) {
         }
         inputIndex++;
 
-        var nextSeries = deepCopy(baseSeries);
+        const nextSeries = deepCopy(baseSeries);
         nextSeries[0].data = input[inputIndex].values;
         nextSeries[0].dataLabels.formatter = formatter;
 
-        var options = deepCopy(baseOptions);
+        let options = deepCopy(baseOptions);
         if (input[inputIndex].options) {
             options = merge(options, input[inputIndex].options);
         }
@@ -258,11 +258,11 @@ Chasingchart.chart = function (_selector, _options) {
             input = formatInputData(inputData);
             inputIndex = 0;
 
-            var series = deepCopy(baseSeries);
+            const series = deepCopy(baseSeries);
             series[0].data = input[inputIndex].values;
             series[0].dataLabels.formatter = formatter;
 
-            var options = deepCopy(baseOptions);
+            let options = deepCopy(baseOptions);
             if (input[inputIndex].options) {
                 options = merge(options, input[inputIndex].options);
             }

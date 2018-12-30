@@ -15,7 +15,7 @@ Bars chase other bars.
 ```html
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js"></script>
-<script src="https://ts-3156.github.io/chasingchart/chasingchart-1.0.0.js"></script>
+<script src="https://ts-3156.github.io/chasingchart/chasingchart-latest.js"></script>
 
 <div id="container" style="min-width: 310px; max-width: 800px; height: 400px; margin: 0 auto"></div>
 <button id="button">Start</button>
