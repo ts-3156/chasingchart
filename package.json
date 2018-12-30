@@ -1,0 +1,23 @@
+{
+  "name": "chasingchart",
+  "version": "1.0.0",
+  "description": "Bars chase other bars.",
+  "main": "chasingchart-latest.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ts-3156/chasingchart.git"
+  },
+  "author": "Teruki Shinohara",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ts-3156/chasingchart/issues"
+  },
+  "homepage": "https://github.com/ts-3156/chasingchart",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0"
+  }
+}

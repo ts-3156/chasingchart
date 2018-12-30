@@ -8,7 +8,7 @@
 var Chasingchart = {};
 
 Chasingchart.chart = function (_selector, _options) {
-    var input = null;
+    let input = null;
     var inputIndex = 0;
     var chart = null;
     var duration = (_options && _options.duration) || 750;
