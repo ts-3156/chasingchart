@@ -6,7 +6,7 @@ Bars chase other bars.
 
 | Gross Domestic Product (GDP) | The number of tourists to Japan |
 :----: | :----:
-| [Edit in JSFiddle](https://jsfiddle.net/Shinohara/5tvLcpxu/4/) | [Edit in JSFiddle](https://jsfiddle.net/Shinohara/s0nbcq8p/2/) |
+| [Edit in JSFiddle](https://jsfiddle.net/Shinohara/s0nbcq8p/4/) | [Edit in JSFiddle](https://jsfiddle.net/Shinohara/5tvLcpxu/5/) |
 | ![Gross Domestic Product (GDP)](https://github.com/ts-3156/chasingchart/blob/master/media/gdp.gif) | ![The number of tourists to Japan](https://github.com/ts-3156/chasingchart/blob/master/media/tourists.gif) |
 
 
@@ -34,7 +34,7 @@ Bars chase other bars.
 
 ## Input data format
 
-[Demo using the below data](https://jsfiddle.net/Shinohara/pxcawzhr/2/)
+[Demo using the below data](https://jsfiddle.net/Shinohara/pxcawzhr/4/)
 
 ```json
 [{
