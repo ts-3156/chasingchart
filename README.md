@@ -4,7 +4,7 @@ Bars chase other bars.
 
 ## Demo
 
-[The number of tourists to Japan](https://github.com/ts-3156/chasingchart/blob/media/tourists.gif)
+[The number of tourists to Japan](https://github.com/ts-3156/chasingchart/blob/master/media/tourists.gif)
 
 ## Getting Started
 
