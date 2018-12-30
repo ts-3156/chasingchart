@@ -68,6 +68,9 @@ Chasingchart.chart = function (_selector, _options) {
             min: 0,
             endOnTick: false,
             // maxPadding: 0.0,
+            labels: {
+                rotation: 0
+            },
             title: {
                 text: null
             }

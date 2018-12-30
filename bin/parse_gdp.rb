@@ -11,6 +11,8 @@ CSV.read(ARGV[0], headers: true).to_a.transpose.each.with_index do |row, i|
     next
   end
 
+  # next unless row[0].to_i == 1981 || row[0].to_i == 1982
+
   obj = {options: {}, values: [], categories: []}
 
   headers.each do |header|
