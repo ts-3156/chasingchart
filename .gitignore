@@ -1,4 +1,2 @@
 /.idea
-*.csv
-*.json
 /node_modules
