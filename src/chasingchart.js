@@ -17,11 +17,11 @@ Chasingchart.chart = function (_selector, _options) {
     const formatter = function () {
         // return Highcharts.numberFormat(this.y, 0, '', ',');
         let v = this.y;
-        if (v > 1000000000) {
+        if (v > 10000000000) {
             v = Math.floor(v / 1000000000) + "G";
-        } else if (v > 1000000) {
+        } else if (v > 10000000) {
             v = Math.floor(v / 1000000) + "M";
-        } else if (v > 1000) {
+        } else if (v > 10000) {
             v = Math.floor(v / 1000) + "K";
         }
         return v;
@@ -85,7 +85,7 @@ Chasingchart.chart = function (_selector, _options) {
     };
 
     const formatInputData = function (input) {
-        const colors = ["#7cb5ec", "#434348", "#90ed7d", "#f7a35c", "#8085e9", "#f15c80", "#e4d354", "#2b908f", "#f45b5b", "#91e8e1"];
+        const colors = ["#e6194B", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#42d4f4", "#f032e6", "#bfef45", "#fabebe", "#469990", "#e6beff", "#9A6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075"];
         const assignedColors = {};
 
         input[0].categories.forEach(function (category, i) {
