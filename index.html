@@ -61,7 +61,7 @@
     <button id="button1" class="btn btn-primary" style="display: block; margin: 0 auto">Start</button>
 </div>
 
-<hr>
+<hr style="margin: 30px auto">
 
 <div id="container2" style="min-width: 310px; max-width: 800px; height: 400px; margin: 0 auto"></div>
 
@@ -71,7 +71,7 @@
 
 <script>
     function initChart(inputData, containerSelector, buttonSelector) {
-        var chart = Chasingchart.chart(containerSelector);
+        var chart = Chasingchart.chart(containerSelector, {duration: 750});
         chart.setData(inputData);
 
         document.getElementById(buttonSelector).addEventListener("click", function (event) {

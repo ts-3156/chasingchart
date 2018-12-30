@@ -1,10 +1,10 @@
 var Chasingchart = {};
 
-Chasingchart.chart = function (_selector) {
+Chasingchart.chart = function (_selector, _options) {
     var input = null;
     var inputIndex = 0;
     var chart = null;
-    var duration = 500;
+    var duration = (_options && _options.duration) || 750;
     var selector = _selector;
 
     var formatter = function () {
