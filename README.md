@@ -50,9 +50,17 @@ Bars chase other bars.
 
 ## Contributing
 
-Everyone is encouraged to help improve this project. Here are a few ways you can help:
+Anything is OK. Feel free to submit issues or pull-requests.
 
-- [Report bugs](https://github.com/ts-3156/chasingchart/issues)
-- Fix bugs and [submit pull requests](https://github.com/ts-3156/chasingchart/pulls)
-- Write, clarify, or fix documentation
-- Suggest or add new features
+- [Issues](https://github.com/ts-3156/chasingchart/issues)
+- [Pull-requests](https://github.com/ts-3156/chasingchart/pulls)
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/ts-3156/chasingchart/blob/master/LICENSE) file for details
+
+## Acknowledgments
+
+- [Thanks ppotaczek](https://stackoverflow.com/questions/53935813/highcharts-can-i-animate-changing-the-order-of-bars-on-bar-chart)
+- [Inspired by The Major World Economies Over Time](https://www.reddit.com/r/interestingasfuck/comments/9togwf/the_major_world_economies_over_time/)
+- [Button design](https://labs.loupbrun.ca/buttons/)
