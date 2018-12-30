@@ -1,3 +1,10 @@
+/*
+ Chasingchart JS v1.0.0 (2018-12-30)
+
+ (c) 2018 Teruki Shinohara
+
+ License: github.com/ts-3156/chasingchart/blob/master/LICENSE
+*/
 var Chasingchart = {};
 
 Chasingchart.chart = function (_selector, _options) {
