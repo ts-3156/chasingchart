@@ -1,0 +1,44 @@
+/* Original https://labs.loupbrun.ca/buttons/ */
+.tau .btn {
+    display: inline-block;
+    margin: 6px;
+    font-size: inherit;
+    line-height: 1.42;
+    padding: 0.6em 1.2em;
+    font-weight: normal;
+    border-width: 0;
+    border-style: solid;
+    background: transparent;
+    border-radius: 0;
+    cursor: pointer;
+    font-family: "Booster Next FY", "Avenir Next", Avenir, sans-serif;
+    user-select: none;
+    vertical-align: bottom;
+    transition: background-color 0.3s;
+}
+
+.tau .btn.btn-disabled {
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+.tau .btn.btn-disabled:active {
+    opacity: 0.6;
+}
+
+.tau .btn:active {
+    transition-duration: 0.1s;
+}
+
+.tau .btn-primary {
+    background-color: #52C11F;
+    color: #E6EAEF;
+}
+
+.tau .btn-primary:hover {
+    background-color: #59d322;
+}
+
+.tau .btn-primary:active {
+    background-color: #4baf1c;
+}

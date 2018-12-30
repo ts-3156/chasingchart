@@ -13,40 +13,10 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
     <link rel="shortcut icon" href="">
+    <link rel="stylesheet" href="./main.css">
 
     <style>
-        /* Original https://labs.loupbrun.ca/buttons/ */
-        .tau .btn {
-            display: inline-block;
-            margin: 6px;
-            font-size: inherit;
-            line-height: 1.42;
-            padding: 1.2em 2.4em;
-            font-weight: normal;
-            border-width: 0;
-            border-style: solid;
-            background: transparent;
-            border-radius: 0;
-            cursor: pointer;
-            font-family: "Booster Next FY", "Avenir Next", Avenir, sans-serif;
-            user-select: none;
-            vertical-align: bottom;
-            transition: background-color 0.3s; }
-        .tau .btn.btn-disabled {
-            cursor: not-allowed;
-            opacity: 0.8; }
-        .tau .btn.btn-disabled:active {
-            opacity: 0.6; }
-        .tau .btn:active {
-            transition-duration: 0.1s; }
-
-        .tau .btn-primary {
-            background-color: #52C11F;
-            color: #E6EAEF; }
-        .tau .btn-primary:hover {
-            background-color: #59d322; }
-        .tau .btn-primary:active {
-            background-color: #4baf1c; }    </style>
+    </style>
 </head>
 <body>
 <script src="https://code.highcharts.com/highcharts.js"></script>
@@ -66,6 +36,8 @@
 <div class="tau" style="min-width: 310px; max-width: 800px; margin: 0 auto">
     <button id="button2" class="btn btn-primary" style="display: block; margin: 0 auto">Start</button>
 </div>
+
+<div style="margin: 30px auto"></div>
 
 <script>
     function initChart(inputData, containerSelector, buttonSelector) {
