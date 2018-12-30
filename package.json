@@ -2,9 +2,11 @@
   "name": "chasingchart",
   "version": "1.0.0",
   "description": "Bars chase other bars.",
-  "main": "chasingchart-latest.js",
+  "private": true,
+  "main": "dist/chasingchart-1.0.0.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "babel src --out-dir dist"
   },
   "repository": {
     "type": "git",
