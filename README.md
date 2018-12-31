@@ -6,7 +6,7 @@ Bars chase other bars.
 
 | Gross Domestic Product (GDP) | The number of tourists to Japan |
 :----: | :----:
-| [Edit in JSFiddle](https://jsfiddle.net/Shinohara/s0nbcq8p/10/) | [Edit in JSFiddle](https://jsfiddle.net/Shinohara/5tvLcpxu/12/) |
+| [Edit in JSFiddle](https://jsfiddle.net/Shinohara/s0nbcq8p/12/) | [Edit in JSFiddle](https://jsfiddle.net/Shinohara/5tvLcpxu/13/) |
 | ![Gross Domestic Product (GDP)](https://github.com/ts-3156/chasingchart/blob/master/media/gdp.gif) | ![The number of tourists to Japan](https://github.com/ts-3156/chasingchart/blob/master/media/tourists.gif) |
 
 
@@ -34,16 +34,14 @@ Bars chase other bars.
 
 ## Input data format
 
-[Demo using the below data](https://jsfiddle.net/Shinohara/pxcawzhr/10/)
+[Demo using the below data](https://jsfiddle.net/Shinohara/pxcawzhr/13/)
 
 ```json
 [{
-    "values": [500, 400, 300, 200, 100],
-    "categories": ["Cat1", "Cat2", "Cat3", "Cat4", "Cat5"],
+    "data": {"cat1":  500, "cat2":  400, "cat3":  300, "cat4":  200, "cat5":  100},
     "options": {"title": {"text": "Something statistics"}, "subtitle": {"text": "1900"}}
 }, {
-    "values": [550, 500, 300, 400, 500],
-    "categories": ["Cat2", "Cat1", "Cat3", "Cat4", "Cat5"],
+    "data": {"cat1":  500, "cat2":  550, "cat3":  300, "cat4":  200, "cat5":  100},
     "options": {"title": {"text": "Something statistics"}, "subtitle": {"text": "2000"}}
 }]
 ```
