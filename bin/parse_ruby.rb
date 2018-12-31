@@ -1,6 +1,9 @@
 require 'nokogiri'
 require 'time'
 
+$LOAD_PATH.unshift(File.expand_path("../", __FILE__))
+require 'smooth'
+
 dir = ARGV[0]
 values = []
 
