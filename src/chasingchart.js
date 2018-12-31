@@ -13,6 +13,7 @@ Chasingchart.chart = function (_selector, _options) {
     let chart = null;
     const duration = (_options && _options.duration) || 750;
     const selector = _selector;
+    const colors = ["#e6194B", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#42d4f4", "#f032e6", "#bfef45", "#fabebe", "#469990", "#e6beff", "#9A6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075"];
 
     const formatter = function () {
         // return Highcharts.numberFormat(this.y, 0, '', ',');
@@ -87,11 +88,9 @@ Chasingchart.chart = function (_selector, _options) {
     };
 
     const formatInputData = function (input) {
-        const colors = ["#e6194B", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#42d4f4", "#f032e6", "#bfef45", "#fabebe", "#469990", "#e6beff", "#9A6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075"];
-        const assignedColors = {};
-
+        const categoryColors = {};
         input[0].categories.forEach(function (category, i) {
-            assignedColors[category] = colors[i % colors.length];
+            categoryColors[category] = colors[i % colors.length];
         });
 
         const sortedInput = [];
@@ -108,9 +107,10 @@ Chasingchart.chart = function (_selector, _options) {
 
             const sortedElem = {values: [], categories: []};
             ary.forEach(function (obj, i) {
-                sortedElem.values[i] = {y: obj.value, color: assignedColors[obj.category]};
+                sortedElem.values[i] = {y: obj.value, color: categoryColors[obj.category]};
                 sortedElem.categories[i] = obj.category;
             });
+
             if (elem.options) {
                 sortedElem.options = deepCopy(elem.options);
             } else {
@@ -137,7 +137,7 @@ Chasingchart.chart = function (_selector, _options) {
         chart.xAxis[0].categories.forEach(function (c, i) {
             input[inputIndex].categories.forEach(function (cc, j) {
                 if (c === cc) {
-                    nextValues[i] = nextSeries[0].data[j];
+                    nextValues[i] = nextSeries[0].data[j].y;
                 }
             });
         });
@@ -162,11 +162,11 @@ Chasingchart.chart = function (_selector, _options) {
                 if (loopCount >= maxLoopCount - 1) {
                     tmpValues[i] = nextValues[i];
                 } else {
-                    if (v === nextValues[i].y) {
+                    if (v === nextValues[i]) {
                         tmpValues[i] = v;
                     } else {
-                        const diff = parseFloat(loopCount + 1) * Math.abs(v - nextValues[i].y) / maxLoopCount;
-                        if (v < nextValues[i].y) {
+                        const diff = parseFloat(loopCount + 1) * Math.abs(v - nextValues[i]) / maxLoopCount;
+                        if (v < nextValues[i]) {
                             tmpValues[i] = v + diff;
                         } else {
                             tmpValues[i] = v - diff;
