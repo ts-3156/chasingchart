@@ -95,7 +95,7 @@ Chasingchart.chart = function (_selector, _options) {
 
     const formatInputData = function (input) {
         const colors = {};
-        input[0].categories.forEach(function (category, i) {
+        Object.keys(input[0].data).forEach(function (category, i) {
             colors[category] = COLORS[i % COLORS.length];
         });
 
@@ -103,8 +103,8 @@ Chasingchart.chart = function (_selector, _options) {
 
         input.forEach(function (elem, i) {
             const ary = [];
-            elem.values.forEach(function (value, j) {
-                ary[j] = {value: value, category: elem.categories[j]}
+            Object.keys(elem.data).forEach(function (category, i) {
+                ary.push({value: elem.data[category], category: category})
             });
 
             ary.sort(function (a, b) {
