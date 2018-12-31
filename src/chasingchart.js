@@ -45,12 +45,7 @@ Chasingchart.chart = function (_selector, _options) {
     const baseSeries = [{
         name: 'Series 1',
         animation: {duration: duration},
-        data: [],
-        dataLabels: {
-            align: 'right',
-            enabled: true,
-            defer: true
-        }
+        data: []
     }];
 
     const baseOptions = {
@@ -62,6 +57,15 @@ Chasingchart.chart = function (_selector, _options) {
         },
         subtitle: {
             text: null
+        },
+        plotOptions: {
+            series: {
+                dataLabels: {
+                    enabled: true,
+                    align: 'right',
+                    formatter: formatter
+                }
+            }
         },
         xAxis: {
             categories: [],
@@ -287,12 +291,12 @@ Chasingchart.chart = function (_selector, _options) {
 
         const nextSeries = deepCopy(baseSeries);
         nextSeries[0].data = input[inputIndex].values;
-        nextSeries[0].dataLabels.formatter = formatter;
 
         let options = deepCopy(baseOptions);
         if (input[inputIndex].options) {
             options = merge(options, input[inputIndex].options);
         }
+        options.plotOptions.series.dataLabels.formatter = formatter;
 
         countUp(duration, true, function () {
             // TODO Can't run countUp and rotateBars simultaneously
@@ -330,12 +334,12 @@ Chasingchart.chart = function (_selector, _options) {
 
             const series = deepCopy(baseSeries);
             series[0].data = input[inputIndex].values;
-            series[0].dataLabels.formatter = formatter;
 
             let options = deepCopy(baseOptions);
             if (input[inputIndex].options) {
                 options = merge(options, input[inputIndex].options);
             }
+            options.plotOptions.series.dataLabels.formatter = formatter;
             options.series = series;
             options.xAxis.categories = input[inputIndex].categories;
 
