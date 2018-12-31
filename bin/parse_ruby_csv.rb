@@ -32,9 +32,9 @@ end
 
 tbl = []
 
-table.each_cons(2) do |obj1, obj2|
-  ary = smooth(obj1, obj2)
-  tbl.concat(ary)
-end
+# table.each_cons(2) do |obj1, obj2|
+#   ary = smooth(obj1, obj2)
+#   tbl.concat(ary)
+# end
 
-puts JSON.dump(tbl)
+puts JSON.dump(table)
