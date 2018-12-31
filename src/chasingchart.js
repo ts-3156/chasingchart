@@ -15,7 +15,7 @@ Chasingchart.chart = function (_selector, _options) {
     let stopped = false;
     const duration = (_options && _options.duration) || 750;
     const selector = _selector;
-    const colors = ["#e6194B", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#42d4f4", "#f032e6", "#bfef45", "#fabebe", "#469990", "#e6beff", "#9A6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075"];
+    const COLORS = ["#e6194B", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#42d4f4", "#f032e6", "#bfef45", "#fabebe", "#469990", "#e6beff", "#9A6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075"];
 
     const formatter = function () {
         // return Highcharts.numberFormat(this.y, 0, '', ',');
@@ -90,9 +90,9 @@ Chasingchart.chart = function (_selector, _options) {
     };
 
     const formatInputData = function (input) {
-        const categoryColors = {};
+        const colors = {};
         input[0].categories.forEach(function (category, i) {
-            categoryColors[category] = colors[i % colors.length];
+            colors[category] = COLORS[i % COLORS.length];
         });
 
         const sortedInput = [];
@@ -109,7 +109,7 @@ Chasingchart.chart = function (_selector, _options) {
 
             const sortedElem = {values: [], categories: []};
             ary.forEach(function (obj, i) {
-                sortedElem.values[i] = {y: obj.value, color: categoryColors[obj.category]};
+                sortedElem.values[i] = {y: obj.value, color: colors[obj.category]};
                 sortedElem.categories[i] = obj.category;
             });
 
