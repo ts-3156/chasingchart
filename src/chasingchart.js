@@ -11,6 +11,8 @@ Chasingchart.chart = function (_selector, _options) {
     let input = null;
     let inputIndex = 0;
     let chart = null;
+    let started = false;
+    let stopped = false;
     const duration = (_options && _options.duration) || 750;
     const selector = _selector;
     const colors = ["#e6194B", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#42d4f4", "#f032e6", "#bfef45", "#fabebe", "#469990", "#e6beff", "#9A6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075"];
@@ -275,6 +277,7 @@ Chasingchart.chart = function (_selector, _options) {
 
     const update = function (callback) {
         if (input.length - 1 <= inputIndex) {
+            started = false;
             if (callback) {
                 callback();
             }
@@ -297,10 +300,27 @@ Chasingchart.chart = function (_selector, _options) {
             rotateBars(Math.floor(duration * 0.8), function () {
                 nextSeries[0].animation = false;
                 reDraw(nextSeries, input[inputIndex].categories, options, function () {
-                    update(callback);
+                    if (stopped) {
+                        started = false;
+                        if (callback) {
+                            callback();
+                        }
+                    } else {
+                        update(callback);
+                    }
                 });
             });
         });
+    };
+
+    const start = function (callback) {
+        started = true;
+        stopped = false;
+        update(callback);
+    };
+
+    const stop = function () {
+        stopped = true;
     };
 
     return {
@@ -321,6 +341,8 @@ Chasingchart.chart = function (_selector, _options) {
 
             chart = Highcharts.chart(selector, options);
         },
-        update: update
+        update: update,
+        start: start,
+        stop: stop
     };
 };
