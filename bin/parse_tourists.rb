@@ -1,21 +1,30 @@
 require 'csv'
 require 'json'
 
-out = []
+$LOAD_PATH.unshift(File.expand_path("../", __FILE__))
+require 'smooth'
+
+table = []
 
 CSV.foreach(ARGV[0], headers: true) do |row|
-  obj = {options: {}, values: [], categories: []}
+  obj = {options: {}, data: {}}
 
   row.headers.each do |header|
     if header == 'Year'
       obj[:options] = {title: {text: 'The number of tourists to Japan'}, subtitle: {text: row[header]}}
     else
-      obj[:values] << row[header].strip.delete(',').to_i
-      obj[:categories] << header.strip
+      obj[:data][header.strip] = row[header].strip.delete(',').to_i
     end
   end
 
-  out << obj
+  table << obj
 end
 
-puts JSON.dump(out)
+tbl = []
+
+table.each_cons(2) do |obj1, obj2|
+  ary = smooth(obj1, obj2)
+  tbl.concat(ary)
+end
+
+puts JSON.dump(tbl)
