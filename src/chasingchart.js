@@ -130,10 +130,6 @@ Chasingchart.chart = function (_selector, _options) {
     };
 
     const countUp = function (duration, animation, startedCallback, finishedCallback) {
-        const maxLoopCount = 24;
-        const interval = duration / maxLoopCount;
-        let loopCount = 0;
-
         const values = [];
         chart.series[0].data.forEach(function (d, i) {
             values[i] = d.y; // Sorted by value
@@ -161,6 +157,14 @@ Chasingchart.chart = function (_selector, _options) {
 
             return;
         }
+
+        // MEMO When data is divided for smoothing in the middle of animation, consistency can not be obtained with
+        //  countUp and rotateBars. To prevent this, I take a policy of smoothing the data at the first time.
+        //  Then you can simply animate once with countUp and rotateBars respectively.
+
+        const maxLoopCount = 24;
+        const interval = duration / maxLoopCount;
+        let loopCount = 0;
 
         const animate = function () {
             const tmpValues = [];
@@ -201,9 +205,6 @@ Chasingchart.chart = function (_selector, _options) {
     };
 
     const rotateBars = function (duration, callback) {
-        const points = chart.series[0].points;
-        const ticks = chart.xAxis[0].ticks;
-
         const values = [];
         const categories = chart.xAxis[0].categories;
         chart.series[0].data.forEach(function (d, i) {
@@ -240,6 +241,9 @@ Chasingchart.chart = function (_selector, _options) {
             }
             return;
         }
+
+        const points = chart.series[0].points;
+        const ticks = chart.xAxis[0].ticks;
 
         values.forEach(function (value, i) {
             sortedValues.forEach(function (sValue, j) {
