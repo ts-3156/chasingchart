@@ -1,6 +1,6 @@
 # Chasingchart
 
-Bars chase other bars.
+Bars chase other bars. [Live demo](https://ts-3156.github.io/chasingchart/src/index.html)
 
 ## Demo
 
