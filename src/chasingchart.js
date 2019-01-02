@@ -17,9 +17,9 @@ Chasingchart.chart = function (_selector, _options) {
     const selector = _selector;
     const COLORS = ["#e6194B", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#42d4f4", "#f032e6", "#bfef45", "#fabebe", "#469990", "#e6beff", "#9A6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075"];
 
-    const formatter = function () {
+    const formatter = function (value) {
         // return Highcharts.numberFormat(this.y, 0, '', ',');
-        let v = this.y;
+        let v = typeof(value) === 'number' && value || this.y;
         if (v > 10000000000) {
             v = Math.floor(v / 1000000000) + "G";
         } else if (v > 10000000) {
@@ -129,7 +129,7 @@ Chasingchart.chart = function (_selector, _options) {
         return sortedInput;
     };
 
-    const countUp = function (duration, animation, startedCallback, finishedCallback) {
+    const countUp = function (duration, startedCallback, finishedCallback) {
         const values = [];
         chart.series[0].data.forEach(function (d, i) {
             values[i] = d.y; // Sorted by value
@@ -144,64 +144,44 @@ Chasingchart.chart = function (_selector, _options) {
             });
         });
 
-        if (!animation) {
-            chart.series[0].setData(nextValues, true, {duration: duration});
-            if (startedCallback) {
-                startedCallback();
-            }
-            if (finishedCallback) {
-                setTimeout(function () {
-                    finishedCallback();
-                }, duration);
-            }
-
-            return;
+        chart.series[0].setData(nextValues, true, {duration: duration});
+        if (startedCallback) {
+            startedCallback();
         }
 
-        // MEMO When data is divided for smoothing in the middle of animation, consistency can not be obtained with
-        //  countUp and rotateBars. To prevent this, I take a policy of smoothing the data at the first time.
-        //  Then you can simply animate once with countUp and rotateBars respectively.
+        let counter = 0;
+        const maxSteps = 10;
 
-        const maxLoopCount = 24;
-        const interval = duration / maxLoopCount;
-        let loopCount = 0;
-
-        const animate = function () {
-            const tmpValues = [];
-            values.forEach(function (v, i) {
-                if (loopCount >= maxLoopCount - 1) {
-                    tmpValues[i] = nextValues[i];
+        const timer = setInterval(function() {
+            chart.series[0].points.forEach(function (point, i) {
+                let actualValue;
+                if (counter === maxSteps) {
+                    actualValue = nextValues[i];
                 } else {
-                    if (v === nextValues[i]) {
-                        tmpValues[i] = v;
+                    if (values[i] === nextValues[i]) {
+                        actualValue = nextValues[i];
                     } else {
-                        const diff = parseFloat(loopCount + 1) * Math.abs(v - nextValues[i]) / maxLoopCount;
-                        if (v < nextValues[i]) {
-                            tmpValues[i] = v + diff;
+                        const diff = parseFloat(counter + 1) * Math.abs(nextValues[i] - values[i]) / maxSteps;
+                        if (values[i] < nextValues[i]) {
+                            actualValue = values[i] + diff;
                         } else {
-                            tmpValues[i] = v - diff;
+                            actualValue = values[i] - diff;
                         }
                     }
                 }
+                point.dataLabel.attr({
+                    text: formatter(actualValue)
+                });
             });
 
-            chart.series[0].setData(tmpValues, true, {duration: interval});
-            loopCount++;
-
-            if (loopCount >= maxLoopCount) {
+            counter++;
+            if (counter >= maxSteps) {
                 clearInterval(timer);
                 if (finishedCallback) {
                     finishedCallback();
                 }
             }
-        };
-
-        animate();
-        const timer = setInterval(animate, interval);
-
-        if (startedCallback) {
-            startedCallback();
-        }
+        }, duration / maxSteps);
     };
 
     const rotateBars = function (duration, callback) {
@@ -302,21 +282,20 @@ Chasingchart.chart = function (_selector, _options) {
         }
         options.plotOptions.series.dataLabels.formatter = formatter;
 
-        countUp(duration, true, function () {
-            // TODO Can't run countUp and rotateBars simultaneously
-        }, function () {
+        countUp(duration, function () {
             rotateBars(Math.floor(duration * 0.8), function () {
-                nextSeries[0].animation = false;
-                reDraw(nextSeries, input[inputIndex].categories, options, function () {
-                    if (stopped) {
-                        started = false;
-                        if (callback) {
-                            callback();
-                        }
-                    } else {
-                        update(callback);
+            });
+        }, function () {
+            nextSeries[0].animation = false;
+            reDraw(nextSeries, input[inputIndex].categories, options, function () {
+                if (stopped) {
+                    started = false;
+                    if (callback) {
+                        callback();
                     }
-                });
+                } else {
+                    update(callback);
+                }
             });
         });
     };
