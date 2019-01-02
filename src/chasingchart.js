@@ -158,7 +158,7 @@ Chasingchart.chart = function (_selector, _options) {
         let counter = 0;
         const maxSteps = 10;
 
-        const timer = setInterval(function() {
+        const updateDataLabels = function () {
             chart.series[0].points.forEach(function (point, i) {
                 let actualValue;
                 if (counter === maxSteps) {
@@ -179,7 +179,13 @@ Chasingchart.chart = function (_selector, _options) {
                     text: formatter(actualValue)
                 });
             });
+        };
 
+        updateDataLabels();
+        counter++;
+
+        const timer = setInterval(function() {
+            updateDataLabels();
             counter++;
             if (counter >= maxSteps) {
                 clearInterval(timer);
