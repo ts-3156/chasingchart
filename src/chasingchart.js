@@ -19,7 +19,13 @@ Chasingchart.chart = function (_selector, _options) {
 
     const formatter = function (value) {
         // return Highcharts.numberFormat(this.y, 0, '', ',');
-        let v = typeof(value) === 'number' && value || this.y;
+        let v;
+        if (value === 0) {
+            v = 0;
+        } else {
+            v = typeof (value) === 'number' && value || this.y;
+        }
+
         if (v > 10000000000) {
             v = Math.floor(v / 1000000000) + "G";
         } else if (v > 10000000) {
