@@ -1,5 +1,5 @@
 /*
- Chasingchart JS v1.4.1 (2019-01-03)
+ Chasingchart JS v1.5.0 (2019-01-05)
 
  (c) 2018 Teruki Shinohara
 
