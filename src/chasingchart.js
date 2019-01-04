@@ -42,10 +42,9 @@ Chasingchart.chart = function (_selector, _options) {
         return JSON.parse(JSON.stringify(obj));
     };
 
-    // TODO Avoid using lodash
     const merge = function (src1, src2) {
         // return Object.assign(deepCopy(src1), deepCopy(src2));
-        return _.merge(deepCopy(src1), deepCopy(src2));
+        return Highcharts.merge(false, deepCopy(src1), deepCopy(src2));
     };
 
     const baseSeries = [{
