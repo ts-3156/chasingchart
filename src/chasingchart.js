@@ -112,16 +112,17 @@ Chasingchart.chart = function (_selector, _options) {
 
         input.forEach(function (elem, i) {
             const ary = [];
-            Object.keys(elem.data).forEach(function (category, i) {
+            Object.keys(elem.data).forEach(function (category) {
                 ary.push({value: elem.data[category], category: category})
             });
 
-            ary.sort(function (a, b) {
+            const sortedAry = ary.slice();
+            sortedAry.sort(function (a, b) {
                 return b.value - a.value;
             });
 
             const sortedElem = {values: [], categories: []};
-            ary.forEach(function (obj, i) {
+            sortedAry.forEach(function (obj, i) {
                 sortedElem.values[i] = {y: obj.value, color: colors[obj.category]};
                 sortedElem.categories[i] = obj.category;
             });
@@ -140,7 +141,9 @@ Chasingchart.chart = function (_selector, _options) {
 
     const countUp = function (duration, startedCallback, finishedCallback) {
         const data = [];
-        chart.xAxis[0].categories.forEach(function (c, i) {
+        const categories = chart.xAxis[0].categories;
+
+        categories.forEach(function (c, i) {
             input[inputIndex].categories.forEach(function (cc, j) {
                 if (c === cc) {
                     data[i] = input[inputIndex].values[j].y; // Sorted by current value
@@ -189,51 +192,24 @@ Chasingchart.chart = function (_selector, _options) {
         }, duration / maxSteps);
     };
 
-    const rotateBars = function (duration, callback) {
-        const values = [];
-        const categories = chart.xAxis[0].categories;
-        chart.series[0].data.forEach(function (d, i) {
-            values[i] = {value: d.y, category: categories[i]}; // Sorted by value
-        });
-
-
-        const sortedValues = [];
-        chart.xAxis[0].categories.forEach(function (c, i) {
-            input[inputIndex].categories.forEach(function (cc, j) {
-                if (c === cc) {
-                    sortedValues[i] = {value: input[inputIndex].values[j].y, category: c}; // Sorted by current value
-                }
-            });
-        });
-
-        sortedValues.sort(function (a, b) {
-            return b.value - a.value;
-        });
-
-        // TODO Don't call rotateBars right after calling countUp.
+    const rotate = function (duration, callback) {
+        // TODO Don't call rotate right after calling countUp.
         //  Because chart.series[0].setData overwrite the positions of bars.
 
-        let isChanged = false;
-        values.forEach(function (value, i) {
-            if (value.category !== sortedValues[i].category) {
-                isChanged = true;
+        const ticks = chart.xAxis[0].ticks;
+        const points = chart.series[0].points;
+        const sortedPoints = points.slice();
+        sortedPoints.sort(function (a, b) {
+            if (b.y !== a.y) {
+                return b.y - a.y;
+            } else {
+                return points.indexOf(a) - points.indexOf(b); // TODO To be fixed
             }
         });
-        if (!isChanged) {
-            console.log('rotateBars', 'not changed');
-            if (callback) {
-                callback();
-            }
-            return;
-        }
 
-        const points = chart.series[0].points;
-        const ticks = chart.xAxis[0].ticks;
-
-        values.forEach(function (value, i) {
-            sortedValues.forEach(function (sValue, j) {
-                if (value.category === sValue.category && i !== j) {
-                    console.log('rotateBars', value.category, i, j);
+        points.forEach(function (point, i) {
+            sortedPoints.forEach(function (sPoint, j) {
+                if (point === sPoint && i !== j) {
                     points[i].graphic.animate({
                         x: points[j].shapeArgs.x
                     }, {duration: duration});
@@ -256,7 +232,7 @@ Chasingchart.chart = function (_selector, _options) {
         }
     };
 
-    const reDraw = function (series, categories, options, callback) {
+    const redraw = function (series, categories, options, callback) {
         options.xAxis.categories = categories;
         options.series = series;
 
@@ -288,11 +264,11 @@ Chasingchart.chart = function (_selector, _options) {
         options.plotOptions.series.dataLabels.formatter = formatter;
 
         countUp(duration, function () {
-            rotateBars(Math.floor(duration * 0.8), function () {
+            rotate(Math.floor(duration * 0.8), function () {
             });
         }, function () {
             nextSeries[0].animation = false;
-            reDraw(nextSeries, input[inputIndex].categories, options, function () {
+            redraw(nextSeries, input[inputIndex].categories, options, function () {
                 if (stopped) {
                     started = false;
                     if (callback) {
