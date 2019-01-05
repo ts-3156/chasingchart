@@ -100,8 +100,12 @@ Chasingchart.chart = function (_selector, _options) {
 
     const formatInputData = function (input) {
         const colors = {};
-        Object.keys(input[0].data).forEach(function (category, i) {
-            colors[category] = COLORS[i % COLORS.length];
+        let index = 0;
+        input.forEach(function (inputData) {
+            Object.keys(inputData.data).forEach(function (category, i) {
+                colors[category] = COLORS[i % COLORS.length];
+                index++;
+            });
         });
 
         const sortedInput = [];
