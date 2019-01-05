@@ -139,21 +139,21 @@ Chasingchart.chart = function (_selector, _options) {
     };
 
     const countUp = function (duration, startedCallback, finishedCallback) {
-        const values = [];
-        chart.series[0].data.forEach(function (d, i) {
-            values[i] = d.y; // Sorted by value
-        });
-
-        const nextValues = [];
+        const data = [];
         chart.xAxis[0].categories.forEach(function (c, i) {
             input[inputIndex].categories.forEach(function (cc, j) {
                 if (c === cc) {
-                    nextValues[i] = input[inputIndex].values[j].y; // Sorted by current value
+                    data[i] = input[inputIndex].values[j].y; // Sorted by current value
                 }
             });
         });
 
-        chart.series[0].setData(nextValues, true, {duration: duration});
+        const oldData = [];
+        chart.series[0].data.forEach(function (d, i) {
+            oldData[i] = d.y; // Sorted by value
+        });
+
+        chart.series[0].setData(data, true, {duration: duration});
         if (startedCallback) {
             startedCallback();
         }
@@ -161,34 +161,24 @@ Chasingchart.chart = function (_selector, _options) {
         let counter = 0;
         const maxSteps = 10;
 
-        const updateDataLabels = function () {
+        const update = function () {
             chart.series[0].points.forEach(function (point, i) {
-                let actualValue;
+                let val;
                 if (counter === maxSteps) {
-                    actualValue = nextValues[i];
+                    val = data[i];
                 } else {
-                    if (values[i] === nextValues[i]) {
-                        actualValue = nextValues[i];
-                    } else {
-                        const diff = parseFloat(counter + 1) * Math.abs(nextValues[i] - values[i]) / maxSteps;
-                        if (values[i] < nextValues[i]) {
-                            actualValue = values[i] + diff;
-                        } else {
-                            actualValue = values[i] - diff;
-                        }
-                    }
+                    const diff = parseFloat(counter + 1) * (data[i] - oldData[i]) / maxSteps;
+                    val = oldData[i] + diff;
                 }
-                point.dataLabel.attr({
-                    text: formatter(actualValue)
-                });
+                point.dataLabel.attr({text: formatter(val)});
             });
         };
 
-        updateDataLabels();
+        update();
         counter++;
 
-        const timer = setInterval(function() {
-            updateDataLabels();
+        const timer = setInterval(function () {
+            update();
             counter++;
             if (counter >= maxSteps) {
                 clearInterval(timer);
