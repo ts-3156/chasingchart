@@ -12,13 +12,16 @@ class Commit
     @grouped_time = {}
   end
 
-  def grouped_time(type = 'months')
+  def grouped_time(type = 'weeks')
     return @grouped_time[type] if @grouped_time[type]
 
     if type == 'half_year'
       @grouped_time[type] = (@time.month <= 6 ? @time.strftime('Early %Y') : @time.strftime('Late %Y'))
     elsif type == 'months'
       @grouped_time[type] = @time.strftime('%Y年 %-m月')
+    elsif type == 'weeks'
+      week = @time.day / 7 + 1
+      @grouped_time[type] = @time.strftime("%Y年 %-m月第#{week}週")
     elsif type == 'days'
       @grouped_time[type] = @time.strftime('%Y年 %-m月%-d日')
     else
@@ -47,8 +50,10 @@ end
 def to_array(options)
   commits = []
 
-  File.read(options['in']).each_line do |line|
-    commits << Commit.from_line(line)
+  options['file'].split(',').each do |file|
+    File.read(file.strip).each_line do |line|
+      commits << Commit.from_line(line)
+    end
   end
 
   commits.compact!
@@ -59,13 +64,9 @@ def to_array(options)
   commits.select! { |c| time_range.include?(c.time) }
   warn "Specified-time commits: #{commits.size}"
 
-  # names_hash = commits.map(&:name).tally.select { |_, c| c >= options['min_count'] }
-  # commits.select! { |c| names_hash[c.name] }
-  # warn "Multiple commits: #{commits.size}"
-
-  top_authors = commits.map(&:name).tally.sort_by { |_, c| -c }.take(options['top_n']).to_h
+  top_authors = commits.map(&:name).tally.sort_by { |_, c| -c }.take(options['limit']).to_h
   commits.select! { |c| top_authors[c.name] }
-  warn "Top-author's commits: #{commits.size}"
+  warn "Limited commits: #{commits.size}"
 
   grouped_times = commits.map(&:grouped_time).uniq
   csv_table = [['Name', *grouped_times]]
@@ -100,18 +101,19 @@ def to_json(ary, options)
       next
     end
 
-    obj = {options: {}, data: {}}
+    group = {options: {}, data: {}}
 
     headers.each do |header|
       if header == 'Name'
-        obj[:options] = {title: {text: 'Commits'}, subtitle: {text: row[headers.index(header)].to_s}}
+        group[:options] = {subtitle: {text: row[headers.index(header)].to_s}}
+        group[:options][:title] = {text: options['title']} if options['title']
       else
         total_count[header] += row[headers.index(header)]
-        obj[:data][header.strip] = total_count[header]
+        group[:data][header.strip] = total_count[header]
       end
     end
 
-    table << obj
+    table << group
   end
 
   JSON.dump(table)
@@ -125,17 +127,15 @@ end
 if __FILE__ == $0
   options = ARGV.getopts(
       'h',
-      'in:',
-      'out:',
+      'file:',
       'since:',
       'until:',
-      'min_count:',
-      'top_n:',
+      'limit:',
+      'title:',
   )
   options['since'] ||= '2022-01-01'
   options['until'] ||= '2022-12-31'
-  options['min_count'] = options['min_count']&.to_i || 2
-  options['top_n'] = options['top_n']&.to_i || 30
+  options['limit'] = options['limit']&.to_i || 30
   warn "Options: #{options}"
 
   main(options)
