@@ -1,0 +1,68 @@
+<html lang="ja">
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./main.css">
+
+    <style>
+        .chart-container {
+            min-width: 310px;
+            max-width: 800px;
+            height: 800px;
+            margin: 0 auto
+        }
+
+        .buttons {
+            display: block;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .buttons-wrapper {
+            min-width: 310px;
+            max-width: 800px;
+            margin: 0 auto
+        }
+    </style>
+</head>
+<body>
+<script src="https://code.highcharts.com/7/highcharts.js"></script>
+<script src="./chasingchart.js"></script>
+<!--<script src="../bin/commits20230419.json"></script>-->
+
+<div id="ruby-chart" class="chart-container"></div>
+<div class="buttons-wrapper">
+    <div class="buttons">
+        <button id="btn-start" class="btn btn-primary" style="">Start</button>
+        <button id="btn-stop" class="btn btn-primary" style="">Stop</button>
+    </div>
+</div>
+
+<script>
+  function initChart(inputData, containerSelector, startButtonSelector, stopButtonSelector, options) {
+    var chart = Chasingchart.chart(containerSelector, {duration: options && options.duration || 750});
+    chart.setData(inputData);
+
+    document.getElementById(startButtonSelector).addEventListener("click", function (event) {
+      event.target.classList.add("btn-disabled");
+      event.target.setAttribute("disabled", true);
+      chart.start(function () {
+        event.target.classList.remove("btn-disabled");
+        event.target.removeAttribute("disabled");
+      });
+    }, false);
+
+    document.getElementById(stopButtonSelector).addEventListener("click", function (event) {
+      chart.stop();
+    }, false);
+  }
+
+  var input1 = null;
+
+  console.log(input1);
+  initChart(input1, 'ruby-chart', 'btn-start', 'btn-stop');
+</script>
+</body>
+</html>

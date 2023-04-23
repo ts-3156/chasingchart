@@ -12,13 +12,15 @@ class Commit
     @grouped_time = {}
   end
 
-  def grouped_time(type = 'each_month')
+  def grouped_time(type = 'months')
     return @grouped_time[type] if @grouped_time[type]
 
     if type == 'half_year'
       @grouped_time[type] = (@time.month <= 6 ? @time.strftime('Early %Y') : @time.strftime('Late %Y'))
-    elsif type == 'each_month'
+    elsif type == 'months'
       @grouped_time[type] = @time.strftime('%Y年 %-m月')
+    elsif type == 'days'
+      @grouped_time[type] = @time.strftime('%Y年 %-m月%-d日')
     else
       raise "Invalid type: #{type}"
     end
@@ -35,7 +37,8 @@ class Commit
       if (matched = line.match(REGEXP))
         new(Time.parse(matched[:date]), matched[:name])
       else
-        raise "Invalid line: #{line}"
+        warn "Invalid line: #{line}"
+        nil
       end
     end
   end
@@ -48,6 +51,7 @@ def to_array(options)
     commits << Commit.from_line(line)
   end
 
+  commits.compact!
   commits.sort_by!(&:time)
   warn "Commits: #{commits.size}"
 
@@ -85,12 +89,12 @@ def to_csv(table)
   end
 end
 
-def to_json(csv)
+def to_json(ary, options)
   table = []
   headers = []
   total_count = Hash.new(0)
 
-  csv.transpose.each.with_index do |row, i|
+  ary.transpose.each.with_index do |row, i|
     if i == 0
       headers = row
       next
@@ -115,7 +119,7 @@ end
 
 def main(options)
   ary = to_array(options)
-  puts to_json(ary)
+  puts to_json(ary, options)
 end
 
 if __FILE__ == $0
