@@ -47,6 +47,11 @@ class Commit
   end
 end
 
+def calc_stats(commits)
+  warn "Commits: #{commits.size}"
+  warn "Unique names: #{commits.uniq(&:name).size}"
+end
+
 def to_array(options)
   commits = []
 
@@ -58,7 +63,7 @@ def to_array(options)
 
   commits.compact!
   commits.sort_by!(&:time)
-  warn "Commits: #{commits.size}"
+  calc_stats(commits)
 
   time_range = Time.parse(options['since'])..Time.parse(options['until'])
   commits.select! { |c| time_range.include?(c.time) }
