@@ -3,33 +3,45 @@ require 'csv'
 require 'time'
 require 'json'
 
-class Commit
-  attr_reader :time, :name
+require 'octokit'
 
-  def initialize(time, name)
-    @time = time
-    @name = name
+class Commit
+  attr_reader :date, :repo, :hash, :author
+
+  def initialize(date:, repo:, hash:, author:)
+    @date = date.is_a?(String) ? Time.parse(date) : date
+    @repo = repo
+    @hash = hash
+    @author = author
     @grouped_time = {}
+  end
+
+  def time
+    @date
+  end
+
+  def name
+    author
   end
 
   def grouped_time(type = 'weeks')
     return @grouped_time[type] if @grouped_time[type]
 
     if type == 'half_year'
-      @grouped_time[type] = (@time.month <= 6 ? @time.strftime('Early %Y') : @time.strftime('Late %Y'))
+      @grouped_time[type] = (@date.month <= 6 ? @date.strftime('Early %Y') : @date.strftime('Late %Y'))
     elsif type == 'months'
-      @grouped_time[type] = @time.strftime('%Y年 %-m月')
+      @grouped_time[type] = @date.strftime('%Y年 %-m月')
     elsif type == 'weeks'
-      week = @time.day / 7 + 1
-      @grouped_time[type] = @time.strftime("%Y年 %-m月第#{week}週")
+      week = @date.day / 7 + 1
+      @grouped_time[type] = @date.strftime("%Y年 %-m月第#{week}週")
     elsif type == 'days'
-      @grouped_time[type] = @time.strftime('%Y年 %-m月%-d日')
+      @grouped_time[type] = @date.strftime('%Y年 %-m月%-d日')
     else
       raise "Invalid type: #{type}"
     end
   end
 
-  REGEXP = /^(?<date>\d\d\d\d-\d\d-\d\d) (?<name>.+)/
+  LINE_REGEXP = /^(?<date>\d\d\d\d-\d\d-\d\d) (?<name>.+)/
 
   class << self
     # git log -n 100000000 --date short --pretty=format:"%ad %an" >commits.txt
@@ -37,12 +49,19 @@ class Commit
     # yyyy-mm-dd name2
     # ...
     def from_line(line)
-      if (matched = line.match(REGEXP))
-        new(Time.parse(matched[:date]), matched[:name])
+      if (matched = line.match(LINE_REGEXP))
+        new(date: matched[:date], author: matched[:name], repo: nil, hash: nil)
       else
         warn "Invalid line: #{line}"
         nil
       end
+    end
+
+    def from_json(str)
+      new(**JSON.parse(str, symbolize_names: true))
+    rescue => e
+      warn "Invalid json: #{str}"
+      nil
     end
   end
 end
