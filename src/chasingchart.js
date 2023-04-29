@@ -40,6 +40,10 @@ Chasingchart.chart = function (_selector, _options) {
     return v;
   };
 
+  const userNameFormatter = function (value) {
+    return value.value;
+  }
+
   const deepCopy = function (obj) {
     return JSON.parse(JSON.stringify(obj));
   };
@@ -76,6 +80,10 @@ Chasingchart.chart = function (_selector, _options) {
     },
     xAxis: {
       categories: [],
+      labels: {
+        useHTML: true,
+        formatter: userNameFormatter
+      },
       title: {
         text: null
       }
@@ -308,6 +316,7 @@ Chasingchart.chart = function (_selector, _options) {
       options.plotOptions.series.dataLabels.formatter = formatter;
       options.series = series;
       options.xAxis.categories = input[inputIndex].categories;
+      options.xAxis.labels.formatter = userNameFormatter;
 
       chart = Highcharts.chart(selector, options);
     },

@@ -82,15 +82,18 @@ def to_array(options)
 
   commits.compact!
   commits.sort_by!(&:time)
+  warn "-- Total --"
   calc_stats(commits)
 
   time_range = Time.parse(options['since'])..Time.parse(options['until'])
   commits.select! { |c| time_range.include?(c.time) }
-  warn "Specified-time commits: #{commits.size}"
+  warn "-- Filter by time --"
+  calc_stats(commits)
 
   top_authors = commits.map(&:name).tally.sort_by { |_, c| -c }.take(options['limit']).to_h
   commits.select! { |c| top_authors[c.name] }
-  warn "Limited commits: #{commits.size}"
+  warn "-- Filter by limit --"
+  calc_stats(commits)
 
   grouped_times = commits.map(&:grouped_time).uniq
   csv_table = [['Name', *grouped_times]]
