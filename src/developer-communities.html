@@ -30,10 +30,10 @@
 <body>
 <script src="https://code.highcharts.com/7/highcharts.js"></script>
 <script src="./chasingchart.js"></script>
-<!--<script src="../bin/commits20230419.json"></script>-->
+<script src="./data.js"></script>
 
 <div id="ruby-chart" class="chart-container"></div>
-<div class="buttons-wrapper">
+<div class="buttons-wrapper tau">
     <div class="buttons">
         <button id="btn-start" class="btn btn-primary" style="">Start</button>
         <button id="btn-stop" class="btn btn-primary" style="">Stop</button>
@@ -41,8 +41,9 @@
 </div>
 
 <script>
-  function initChart(inputData, containerSelector, startButtonSelector, stopButtonSelector, options) {
-    var chart = Chasingchart.chart(containerSelector, {duration: options && options.duration || 750});
+  function initChart(inputData, containerSelector, startButtonSelector, stopButtonSelector, _options) {
+    var options = {title: 'Commits', duration: _options && _options.duration || 750};
+    var chart = Chasingchart.chart(containerSelector, options);
     chart.setData(inputData);
 
     document.getElementById(startButtonSelector).addEventListener("click", function (event) {
@@ -59,10 +60,7 @@
     }, false);
   }
 
-  var input1 = null;
-
-  console.log(input1);
-  initChart(input1, 'ruby-chart', 'btn-start', 'btn-stop');
+  initChart(window._data, 'ruby-chart', 'btn-start', 'btn-stop');
 </script>
 </body>
 </html>
