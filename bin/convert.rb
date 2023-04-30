@@ -24,6 +24,10 @@ class Commit
     author
   end
 
+  def name_to_repo!
+    @author = @repo
+  end
+
   def grouped_time(type = 'weeks')
     return @grouped_time[type] if @grouped_time[type]
 
@@ -41,7 +45,8 @@ class Commit
     end
   end
 
-  LINE_REGEXP = /^(?<date>\d\d\d\d-\d\d-\d\d) (?<name>.+)/
+  LINE_REGEXP = /^(?<date>\d\d\d\d-\d\d-\d\d)\t(?<repo>.+)\t(?<name>.+)$/
+  LINE_REGEXP2 = /^(?<date>\d\d\d\d-\d\d-\d\d)\t(?<repo>.+)$/
 
   class << self
     # git log -n 100000000 --date short --pretty=format:"%ad %an" >commits.txt
@@ -49,8 +54,12 @@ class Commit
     # yyyy-mm-dd name2
     # ...
     def from_line(line)
+      line.strip!
+
       if (matched = line.match(LINE_REGEXP))
-        new(date: matched[:date], author: matched[:name], repo: nil, hash: nil)
+        new(date: matched[:date], repo: matched[:repo], author: matched[:name], hash: nil)
+      elsif (matched = line.match(LINE_REGEXP2))
+        new(date: matched[:date], repo: matched[:repo], author: '_noname_', hash: nil)
       else
         warn "Invalid line: #{line}"
         nil
@@ -75,9 +84,19 @@ def to_array(options)
   commits = []
 
   options['file'].split(',').each do |file|
-    File.read(file.strip).each_line do |line|
-      commits << Commit.from_line(line)
+    collection = []
+    file.strip!
+
+    File.open(file, 'rb').each_line do |line|
+      collection << Commit.from_line(line)
     end
+
+    collection.compact!
+    collection.each(&:name_to_repo!) if options['name-to-repo']
+    commits.concat(collection)
+
+    warn "-- #{file} --"
+    calc_stats(collection)
   end
 
   commits.compact!
@@ -158,11 +177,13 @@ if __FILE__ == $0
       'since:',
       'until:',
       'limit:',
+      'name-to-repo:',
       'title:',
   )
   options['since'] ||= '2022-01-01'
   options['until'] ||= '2022-12-31'
   options['limit'] = options['limit']&.to_i || 30
+  options['name-to-repo'] = options['name-to-repo'] == 'true'
   warn "Options: #{options}"
 
   main(options)
