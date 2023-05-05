@@ -108,6 +108,7 @@ Chasingchart.chart = function (_selector, _options) {
     series: null
   };
 
+  // Called only once at the beginning
   const formatInputData = function (input) {
     const colors = {};
     let index = 0;
@@ -149,6 +150,7 @@ Chasingchart.chart = function (_selector, _options) {
     return sortedInput;
   };
 
+  // Called every time the period switches
   const countUp = function (duration, startedCallback, finishedCallback) {
     const data = [];
     const categories = chart.xAxis[0].categories;
@@ -202,6 +204,7 @@ Chasingchart.chart = function (_selector, _options) {
     }, duration / maxSteps);
   };
 
+  // Called every time the period switches
   const rotate = function (duration, callback) {
     // TODO Don't call rotate right after calling countUp.
     //  Because chart.series[0].setData overwrite the positions of bars.
@@ -242,6 +245,7 @@ Chasingchart.chart = function (_selector, _options) {
     }
   };
 
+  // Called every time the period switches
   const redraw = function (series, categories, options, callback) {
     options.xAxis.categories = categories;
     options.series = series;
@@ -254,6 +258,7 @@ Chasingchart.chart = function (_selector, _options) {
     }
   };
 
+  // Called every time the period switches
   const update = function (callback) {
     if (input.length - 1 <= inputIndex) {
       started = false;
