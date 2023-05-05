@@ -41,6 +41,7 @@ Chasingchart.chart = function (_selector, _options) {
   };
 
   const userNameFormatter = function (value) {
+    // TODO Want to add an icon to the username
     return value.value;
   }
 
@@ -67,7 +68,16 @@ Chasingchart.chart = function (_selector, _options) {
       text: title
     },
     subtitle: {
-      text: subtitle
+      text: subtitle,
+      floating: true,
+      align: 'right',
+      verticalAlign: 'bottom',
+      style: {
+        fontSize: '40px',
+        opacity: 0.5
+      },
+      x: 0,
+      y: 0
     },
     plotOptions: {
       series: {
