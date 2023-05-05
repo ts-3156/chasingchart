@@ -4,7 +4,13 @@ set -e
 
 # Example: ./scan.sh ../repos
 
-for dir in $(ls -d ${1}/*); do
+if [ -d ${1}/.git ]; then
+  dirs=${1}
+else
+  dirs=$(ls -d ${1}/*)
+fi
+
+for dir in $dirs; do
   if [[ $(basename $dir) == _* ]]; then
     echo "Skip ${dir}"
     continue
