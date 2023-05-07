@@ -6,13 +6,13 @@ require 'json'
 require 'octokit'
 
 class Commit
-  attr_reader :date, :repo, :hash, :author
+  attr_reader :date, :repo, :hash, :name
 
-  def initialize(date:, repo:, hash:, author:)
+  def initialize(date:, repo:, hash:, name:)
     @date = date.is_a?(String) ? Time.parse(date) : date
     @repo = repo
     @hash = hash
-    @author = author
+    @name = name
     @grouped_time = {}
   end
 
@@ -20,12 +20,8 @@ class Commit
     @date
   end
 
-  def name
-    author
-  end
-
   def name_to_repo!
-    @author = @repo
+    @name = @repo
   end
 
   def grouped_time(type = 'weeks')
@@ -45,8 +41,31 @@ class Commit
     end
   end
 
-  LINE_REGEXP = /^(?<date>\d\d\d\d-\d\d-\d\d)\t(?<repo>.+)\t(?<name>.+)$/
-  LINE_REGEXP2 = /^(?<date>\d\d\d\d-\d\d-\d\d)\t(?<repo>.+)$/
+  @@authors_cache = {}
+
+  def author
+    key = "#{@repo}-#{@hash}"
+
+    unless @@authors_cache.has_key?(key)
+      client = Octokit::Client.new(access_token: ENV['GITHUB_TOKEN'])
+      @@authors_cache[key] = client.commit(@repo, @hash).author
+    end
+
+    @@authors_cache[key]
+  end
+
+  def name_with_avatar_img
+    <<-"HTML"
+      <div style="display: flex; align-items: center;">
+        #{@name}
+        <a href="#{author.html_url}" target="_blank">
+          <img style="margin-left: 5px;" src="#{author.avatar_url}" width="15" height="15" />
+        </a>
+      </div>
+    HTML
+  end
+
+  LINE_REGEXP = /^(?<date>\d\d\d\d-\d\d-\d\d)\t(?<repo>.+)\t(?<hash>.+)\t(?<name>.+)$/
 
   class << self
     # git log -n 100000000 --date short --pretty=format:"%ad %an" >commits.txt
@@ -57,9 +76,7 @@ class Commit
       line.strip!
 
       if (matched = line.match(LINE_REGEXP))
-        new(date: matched[:date], repo: matched[:repo], author: matched[:name], hash: nil)
-      elsif (matched = line.match(LINE_REGEXP2))
-        new(date: matched[:date], repo: matched[:repo], author: '_noname_', hash: nil)
+        new(date: matched[:date], repo: matched[:repo], name: matched[:name], hash: matched[:hash])
       else
         warn "Invalid line: #{line}"
         nil
@@ -117,14 +134,14 @@ def to_array(options)
   grouped_times = commits.map(&:grouped_time).uniq
   csv_table = [['Name', *grouped_times]]
 
-  commits.map(&:name).uniq.each do |name|
+  commits.uniq(&:name).each do |commit|
     row = []
 
     grouped_times.each do |time|
-      row << commits.count { |c| c.name == name && c.grouped_time == time }
+      row << commits.count { |c| c.name == commit.name && c.grouped_time == time }
     end
 
-    csv_table << [name, *row]
+    csv_table << [commit.name_with_avatar_img, *row]
   end
 
   csv_table
