@@ -121,16 +121,17 @@ Chasingchart.chart = function (_selector, _options) {
   // Called only once at the beginning
   const formatInputData = function (input) {
     const colors = {};
-    let index = 0;
+
+    // Assign a color to each category
     input.forEach(function (inputData) {
       Object.keys(inputData.data).forEach(function (category, i) {
         colors[category] = COLORS[i % COLORS.length];
-        index++;
       });
     });
 
     const sortedInput = [];
 
+    // Sort the data for each period in descending order
     input.forEach(function (elem, i) {
       const ary = [];
       Object.keys(elem.data).forEach(function (category) {
