@@ -5,12 +5,45 @@ require 'json'
 
 require 'octokit'
 
-class Commit
-  attr_reader :date, :repo, :hash, :name
+class Avatar
+  def initialize(author)
+    @author = author
+  end
 
-  def initialize(date:, repo:, hash:, name:)
+  def to_html(name)
+    <<-"HTML"
+      <div style="display: flex; align-items: center;">
+        #{name} (@#{@author.login})
+        <a href="#{@author.html_url}" target="_blank">
+          <img style="margin-left: 5px;" src="#{@author.avatar_url}" width="15" height="15" />
+        </a>
+      </div>
+    HTML
+  end
+end
+
+class GithubClient
+  def initialize(access_token)
+    @client = Octokit::Client.new(access_token: access_token)
+    @cache = {}
+  end
+
+  def author(repo, hash)
+    key = "#{repo}-#{hash}"
+
+    unless @cache.has_key?(key)
+      @cache[key] = @client.commit("#{repo}", hash).author
+    end
+
+    @cache[key]
+  end
+end
+
+class Commit
+  attr_reader :date, :hash, :name
+
+  def initialize(date:, hash:, name:)
     @date = date.is_a?(String) ? Time.parse(date) : date
-    @repo = repo
     @hash = hash
     @name = name
     @grouped_time = {}
@@ -20,171 +53,120 @@ class Commit
     @date
   end
 
-  def name_to_repo!
-    @name = @repo
-  end
-
   def grouped_time(type = 'weeks')
     return @grouped_time[type] if @grouped_time[type]
-
-    if type == 'half_year'
-      @grouped_time[type] = (@date.month <= 6 ? @date.strftime('Early %Y') : @date.strftime('Late %Y'))
-    elsif type == 'months'
-      @grouped_time[type] = @date.strftime('%Y年 %-m月')
-    elsif type == 'weeks'
-      week = @date.day / 7 + 1
-      @grouped_time[type] = @date.strftime("%Y年 %-m月第#{week}週")
-    elsif type == 'days'
-      @grouped_time[type] = @date.strftime('%Y年 %-m月%-d日')
-    else
-      raise "Invalid type: #{type}"
-    end
+    @grouped_time[type] = self.class.grouped_time(@date, type)
   end
 
-  @@authors_cache = {}
-
-  def author
-    key = "#{@repo}-#{@hash}"
-
-    unless @@authors_cache.has_key?(key)
-      client = Octokit::Client.new(access_token: ENV['GITHUB_TOKEN'])
-      @@authors_cache[key] = client.commit(@repo, @hash).author
-    end
-
-    @@authors_cache[key]
-  end
-
-  def name_with_avatar_img
-    <<-"HTML"
-      <div style="display: flex; align-items: center;">
-        #{@name}
-        <a href="#{author.html_url}" target="_blank">
-          <img style="margin-left: 5px;" src="#{author.avatar_url}" width="15" height="15" />
-        </a>
-      </div>
-    HTML
-  end
-
-  LINE_REGEXP = /^(?<date>\d\d\d\d-\d\d-\d\d)\t(?<repo>.+)\t(?<hash>.+)\t(?<name>.+)$/
+  LINE_REGEXP = /^(?<date>\d\d\d\d-\d\d-\d\d)\t(?<hash>\w+)\t(?<name>.+)$/
 
   class << self
-    # git log -n 100000000 --date short --pretty=format:"%ad %an" >commits.txt
-    # yyyy-mm-dd name1
-    # yyyy-mm-dd name2
+    # git log -n 100000000 --date short --pretty=format:"%ad%x09%h%x09%an" >commits.txt
+    # yyyy-mm-dd hash name
+    # yyyy-mm-dd hash name
     # ...
     def from_line(line)
       line.strip!
 
       if (matched = line.match(LINE_REGEXP))
-        new(date: matched[:date], repo: matched[:repo], name: matched[:name], hash: matched[:hash])
+        new(date: matched[:date], name: matched[:name], hash: matched[:hash])
       else
         warn "Invalid line: #{line}"
         nil
       end
     end
 
-    def from_json(str)
-      new(**JSON.parse(str, symbolize_names: true))
-    rescue => e
-      warn "Invalid json: #{str}"
-      nil
+    def from_files(str)
+      str.split(',').map do |file|
+        from_file(file)
+      end.flatten
+    end
+
+    def from_file(file)
+      File.open(file.strip, 'rb').each_line.map do |line|
+        from_line(line)
+      end.compact
+    end
+
+    def grouped_time(time, type = 'weeks')
+      case type
+      when 'half_year' then
+        time.month <= 6 ? time.strftime('Early %Y') : time.strftime('Late %Y')
+      when 'months' then
+        time.strftime('%Y年 %-m月')
+      when 'weeks' then
+        # time.strftime("%Y年 %-m月第#{time.day / 7 + 1}週")
+        time.strftime("%Y-%-m #{time.day / 7 + 1}")
+      when 'days' then
+        # time.strftime('%Y年 %-m月%-d日')
+        time.strftime('%Y-%-m-%-d')
+      when 'yday' then
+        time.yday
+      when 'yweek' then
+        time.yday / 7 + 1
+      else
+        raise "Invalid type: #{type}"
+      end
     end
   end
 end
 
-def calc_stats(commits)
-  warn "Commits: #{commits.size}"
-  warn "Unique names: #{commits.uniq(&:name).size}"
-end
-
-def to_array(options)
-  commits = []
-
-  options['file'].split(',').each do |file|
-    collection = []
-    file.strip!
-
-    File.open(file, 'rb').each_line do |line|
-      collection << Commit.from_line(line)
-    end
-
-    collection.compact!
-    collection.each(&:name_to_repo!) if options['name-to-repo']
-    commits.concat(collection)
-
-    warn "-- #{file} --"
-    calc_stats(collection)
-  end
-
-  commits.compact!
+def extract_commits(options)
+  commits = Commit.from_files(options['file'])
   commits.sort_by!(&:time)
-  warn "-- Total --"
-  calc_stats(commits)
+  commits
+end
 
+def filter_commits(commits, options)
   time_range = Time.parse(options['since'])..Time.parse(options['until'])
   commits.select! { |c| time_range.include?(c.time) }
-  warn "-- Filter by time --"
-  calc_stats(commits)
 
   top_authors = commits.map(&:name).tally.sort_by { |_, c| -c }.take(options['limit']).to_h
   commits.select! { |c| top_authors[c.name] }
-  warn "-- Filter by limit --"
-  calc_stats(commits)
-
-  grouped_times = commits.map(&:grouped_time).uniq
-  csv_table = [['Name', *grouped_times]]
-
-  commits.uniq(&:name).each do |commit|
-    row = []
-
-    grouped_times.each do |time|
-      row << commits.count { |c| c.name == commit.name && c.grouped_time == time }
-    end
-
-    csv_table << [commit.name_with_avatar_img, *row]
-  end
-
-  csv_table
+  commits
 end
 
-def to_csv(table)
-  CSV.generate(force_quotes: true) do |data|
-    table.each { |line| data << line }
-  end
-end
-
-def to_json(ary, options)
-  table = []
-  headers = []
-  total_count = Hash.new(0)
-
-  ary.transpose.each.with_index do |row, i|
-    if i == 0
-      headers = row
-      next
-    end
-
-    group = {options: {}, data: {}}
-
-    headers.each do |header|
-      if header == 'Name'
-        group[:options] = {subtitle: {text: row[headers.index(header)].to_s}}
-        group[:options][:title] = {text: options['title']} if options['title']
-      else
-        total_count[header] += row[headers.index(header)]
-        group[:data][header.strip] = total_count[header]
+def format_commits(commits, options)
+  time_type = 'yweek'
+  grouped_times =
+      Date.parse(options['since']).upto(Date.parse(options['until'])).map do |date|
+        Commit.grouped_time(date, time_type)
       end
-    end
+  default_values = grouped_times.map { |t| [t, 0] }.to_h
 
-    table << group
+  count_by_grouped_time = commits.map(&:name).uniq.map do |name|
+    [name, default_values.dup]
+  end.to_h
+
+  commits.each do |commit|
+    count_by_grouped_time[commit.name][commit.grouped_time(time_type)] += 1
   end
 
-  JSON.dump(table)
+  count_by_grouped_time.map do |name, obj|
+    ary_obj = obj.to_a
+    accumulated_count = {}
+    ary_obj.each.with_index do |(day, _), i|
+      accumulated_count[day] = ary_obj[0, i + 1].map { |_, c| c }.sum
+    end
+
+    [name, accumulated_count]
+  end.to_h
 end
 
 def main(options)
-  ary = to_array(options)
-  puts to_json(ary, options)
+  commits = extract_commits(options)
+  commits = filter_commits(commits, options)
+  result = format_commits(commits, options)
+
+  github = GithubClient.new(ENV['GITHUB_TOKEN'])
+
+  result.transform_keys! do |key|
+    commit = commits.find { |c| c.name == key }
+    author = github.author(options['repo'], commit.hash)
+    Avatar.new(author).to_html(commit.name)
+  end
+
+  puts JSON.dump(result)
 end
 
 if __FILE__ == $0
@@ -194,14 +176,11 @@ if __FILE__ == $0
       'since:',
       'until:',
       'limit:',
-      'name-to-repo:',
-      'title:',
+      'repo:',
   )
   options['since'] ||= '2022-01-01'
   options['until'] ||= '2022-12-31'
   options['limit'] = options['limit']&.to_i || 30
-  options['name-to-repo'] = options['name-to-repo'] == 'true'
-  warn "Options: #{options}"
 
   main(options)
 end
