@@ -151,7 +151,7 @@
   }(Highcharts));
 
   function chooseColor(str) {
-    const colors = {ruby: '#ad1100', python: '#ffe362', php: '#6d7eb7', java: '#ef9c4f', perl: '#ff6600', rust: '#000000', go: '#bbbbbb', swift: '#f05237', kotlin: '#e901e1', nodejs: '#78ac65'};
+    const colors = {ruby: '#ad1100', python: '#ffe362', php: '#6d7eb7', java: '#ef9c4f', perl: '#ff6600', rust: '#000000', go: '#bbbbbb', swift: '#f05237', kotlin: '#e901e1', nodejs: '#78ac65', gcc: '#6693d1'};
     const matched = str.match(/__(\w+)__/) || [];
     return colors[matched[1]] || '#aaaaaa'
   }
@@ -172,13 +172,21 @@
     return `<span style="font-size: 60px">${month[index]} ${targetYear}</span>`;
   }
 
+  function setContainerHeight() {
+    let value = Object.keys(dataset).length * 30;
+    if (value < 500) {
+      value = 500;
+    }
+    document.getElementById('container').style.height = value + 'px';
+  }
+
   (async () => {
 
     dataset = await fetch(
         './data.json'
     ).then(response => response.json());
 
-    document.getElementById('container').style.height = Object.keys(dataset).length * 30 + 'px';
+    setContainerHeight();
 
     chart = Highcharts.chart('container', {
       chart: {
@@ -195,8 +203,8 @@
         text: getSubtitle(),
         floating: true,
         align: 'right',
-        verticalAlign: 'bottom',
-        y: -40,
+        verticalAlign: 'top',
+        y: 400,
         x: -50
       },
 

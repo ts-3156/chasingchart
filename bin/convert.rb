@@ -31,10 +31,11 @@ class Avatar
       'swift' => 'https://avatars.githubusercontent.com/u/42816656?s=200&v=4',
       'kotlin' => 'https://avatars.githubusercontent.com/u/878437?s=200&v=4',
       'nodejs' => 'https://avatars.githubusercontent.com/u/9950313?s=200&v=4',
+      'gcc' => 'https://avatars.githubusercontent.com/u/8382043?s=48&v=4',
   }
 
   TEMPLATE = <<-"HTML"
-      <div style="display: flex; align-items: center;">
+      <div style="display: flex; align-items: center;" data-name="<%= name %>">
         <%= login %>
         <span>
           <img style="margin-left: 5px;" src="<%= org_avatar_url %>" width="15" height="15" alt="__<%= lang %>__" />
@@ -47,6 +48,7 @@ class Avatar
 
   def to_html(name, lang)
     ERB.new(TEMPLATE).result_with_hash(
+        name: name,
         login: @author.login,
         org_avatar_url: AVATAR_URLS[lang],
         lang: lang,
@@ -69,6 +71,7 @@ class GithubClient
       'swift' => 'swiftlang/swift',
       'kotlin' => 'JetBrains/kotlin',
       'nodejs' => 'nodejs/node',
+      'gcc' => 'gcc-mirror/gcc',
   }
 
   def initialize(access_token)
@@ -130,8 +133,8 @@ class Commit
 
   class << self
     # git log -n 100000000 --date short --pretty=format:"%ad%x09__lang__%x09%h%x09%an" >commits.txt
-    # yyyy-mm-dd hash name
-    # yyyy-mm-dd hash name
+    # yyyy-mm-dd lang hash name
+    # yyyy-mm-dd lang hash name
     # ...
     def from_line(line, &blk)
       return unless blk.call(line)
@@ -174,6 +177,21 @@ class Commit
   end
 end
 
+class IgnoreList
+  def initialize(file)
+    @list = Hash.new { |h, k| h[k] = Hash.new(false) }
+
+    File.read(file).each_line do |line|
+      lang, name = line.strip.split('/')
+      @list[lang][name] = true
+    end
+  end
+
+  def include?(lang, name)
+    (names = @list[lang]) && names[name]
+  end
+end
+
 class App
   attr_reader :commits
 
@@ -188,15 +206,17 @@ class App
         line.match?(/^#{start_time.year}/)
       end
 
+      ary.reject! { |c| @options['ignore-list'].include?(c.lang, c.name) }
+      warn "#{file} #{ary.size} #{ary.map(&:name).uniq.size}"
+
       ary = limit(ary, @options['limit-by-file'])
       @commits.concat(ary)
-      warn "#{file} #{ary.size}"
     end
 
     @commits.select! { |c| time_range.include?(c.time) }
     limit(@commits, @options['limit'])
 
-    @commits.sort_by(&:time)
+    @commits.sort_by!(&:time)
   end
 
   def convert
@@ -241,8 +261,8 @@ class App
   end
 
   def limit(ary, num)
-    authors = ary.map(&:name).tally.sort_by { |_, c| -c }.take(num).to_h
-    ary.select { |c| authors[c.name] }
+    names = ary.map(&:name).tally.sort_by { |_, c| -c }.take(num).to_h
+    ary.select { |c| names[c.name] }
   end
 end
 
@@ -274,11 +294,13 @@ if __FILE__ == $0
       'limit:',
       'limit-by-file:',
       'repo:',
+      'ignore:',
   )
   options['since'] ||= '2022-01-01'
   options['until'] ||= '2022-12-31'
   options['limit'] = options['limit']&.to_i || 30
   options['limit-by-file'] = options['limit-by-file']&.to_i || 30
+  options['ignore-list'] = IgnoreList.new(options['ignore'])
 
   main(options)
 end
