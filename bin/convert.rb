@@ -3,6 +3,7 @@ require 'csv'
 require 'time'
 require 'json'
 require 'erb'
+require 'logger'
 
 require 'active_support'
 require 'faraday/http_cache'
@@ -72,7 +73,8 @@ class GithubClient
 
   def initialize(access_token)
     Octokit.middleware = Faraday::RackBuilder.new do |builder|
-      builder.use :http_cache, store: ActiveSupport::Cache.lookup_store(:file_store, 'github-cache'), shared_cache: false
+      builder.use :http_cache, store: ActiveSupport::Cache.lookup_store(:file_store, 'github-cache'),
+                  logger: Logger.new(STDERR), shared_cache: false
       builder.use Octokit::Response::RaiseError
       builder.adapter Faraday.default_adapter
     end
@@ -131,7 +133,8 @@ class Commit
     # yyyy-mm-dd hash name
     # yyyy-mm-dd hash name
     # ...
-    def from_line(line)
+    def from_line(line, &blk)
+      return unless blk.call(line)
       line.delete!("\n$")
 
       if (matched = line.match(LINE_REGEXP))
@@ -142,9 +145,9 @@ class Commit
       end
     end
 
-    def from_file(file)
+    def from_file(file, &blk)
       File.open(file.strip, 'rb').each_line.map do |line|
-        from_line(line)
+        from_line(line, &blk)
       end.compact
     end
 
@@ -171,65 +174,89 @@ class Commit
   end
 end
 
-def limit_commits(commits, limit)
-  authors = commits.map(&:name).tally.sort_by { |_, c| -c }.take(limit).to_h
-  commits.select { |c| authors[c.name] }
-end
+class App
+  attr_reader :commits
 
-def extract_commits(options)
-  commits = []
-
-  options['file'].split(',').each do |file|
-    ary = Commit.from_file(file)
-    ary = limit_commits(ary, options['limit-by-file'])
-    commits.concat(ary)
+  def initialize(options)
+    @options = options
+    @commits = []
   end
 
-  commits.sort_by(&:time)
-end
-
-def filter_commits(commits, options)
-  time_range = Time.parse(options['since'])..Time.parse(options['until'])
-  commits.select! { |c| time_range.include?(c.time) }
-  limit_commits(commits, options['limit'])
-end
-
-def format_commits(commits, options)
-  time_type = 'yweek'
-  grouped_times =
-      Date.parse(options['since']).upto(Date.parse(options['until'])).map do |date|
-        Commit.grouped_time(date, time_type)
+  def parse
+    @options['file'].split(',').each do |file|
+      ary = Commit.from_file(file) do |line|
+        line.match?(/^#{start_time.year}/)
       end
-  default_values = grouped_times.map { |t| [t, 0] }.to_h
 
-  count_by_grouped_time = commits.map(&:name).uniq.map do |name|
-    [name, default_values.dup]
-  end.to_h
-
-  commits.each do |commit|
-    count_by_grouped_time[commit.name][commit.grouped_time(time_type)] += 1
-  end
-
-  count_by_grouped_time.map do |name, obj|
-    ary_obj = obj.to_a
-    accumulated_count = {}
-    ary_obj.each.with_index do |(day, _), i|
-      accumulated_count[day] = ary_obj[0, i + 1].map { |_, c| c }.sum
+      ary = limit(ary, @options['limit-by-file'])
+      @commits.concat(ary)
+      warn "#{file} #{ary.size}"
     end
 
-    [name, accumulated_count]
-  end.to_h
+    @commits.select! { |c| time_range.include?(c.time) }
+    limit(@commits, @options['limit'])
+
+    @commits.sort_by(&:time)
+  end
+
+  def convert
+    time_type = 'yweek'
+    grouped_times =
+        Date.parse(@options['since']).upto(Date.parse(@options['until'])).map do |date|
+          Commit.grouped_time(date, time_type)
+        end
+    default_values = grouped_times.map { |t| [t, 0] }.to_h
+
+    count_by_grouped_time = @commits.map(&:name).uniq.map do |name|
+      [name, default_values.dup]
+    end.to_h
+
+    @commits.each do |commit|
+      count_by_grouped_time[commit.name][commit.grouped_time(time_type)] += 1
+    end
+
+    count_by_grouped_time.map do |name, obj|
+      ary_obj = obj.to_a
+      accumulated_count = {}
+      ary_obj.each.with_index do |(day, _), i|
+        accumulated_count[day] = ary_obj[0, i + 1].map { |_, c| c }.sum
+      end
+
+      [name, accumulated_count]
+    end.to_h
+  end
+
+  private
+
+  def time_range
+    @time_range ||= start_time..end_time
+  end
+
+  def start_time
+    @start_time ||= Time.parse(@options['since'])
+  end
+
+  def end_time
+    @end_time ||= Time.parse(@options['until'])
+  end
+
+  def limit(ary, num)
+    authors = ary.map(&:name).tally.sort_by { |_, c| -c }.take(num).to_h
+    ary.select { |c| authors[c.name] }
+  end
 end
 
 def main(options)
-  commits = extract_commits(options)
-  commits = filter_commits(commits, options)
-  result = format_commits(commits, options)
+  app = App.new(options)
+  app.parse
+  result = app.convert
 
   github = GithubClient.new(ENV['GITHUB_TOKEN'])
 
   result.transform_keys! do |key|
-    commit = commits.find { |c| c.name == key }
+    commit = app.commits.find { |c| c.name == key }
+    raise "Commit is not found: name=#{key}" unless commit
+
     author = github.author(commit.lang, commit.hash) ||
         BlankAuthor.new(commit.name)
     Avatar.new(author).to_html(commit.name, commit.lang)
