@@ -14,7 +14,7 @@
         }
 
         #container {
-            height: 800px;
+            height: 1200px;
             max-width: 1000px;
             margin: 0 auto;
         }
@@ -62,10 +62,10 @@
 <script>
   const startValue = 1,
       endValue = 52,
-      targetYear = 2024,
+      targetYear = 2023,
       btn = document.getElementById('play-pause-button'),
       input = document.getElementById('play-range'),
-      nbr = 100;
+      animationDuration = 1000;
 
   let dataset, chart;
 
@@ -150,15 +150,19 @@
     });
   }(Highcharts));
 
+  function chooseColor(str) {
+    const colors = {ruby: '#ad1100', python: '#ffe362', php: '#6d7eb7', java: '#ef9c4f', perl: '#ff6600', rust: '#000000', go: '#bbbbbb', swift: '#f05237', kotlin: '#e901e1', nodejs: '#78ac65'};
+    const matched = str.match(/__(\w+)__/) || [];
+    return colors[matched[1]] || '#aaaaaa'
+  }
 
-  function getData(value) {
-    const output = Object.entries(dataset)
-        .map(country => {
-          const [name, data] = country;
-          return [name, Number(data[value])];
+  function getData(dataIndex) {
+    return Object.entries(dataset)
+        .map(commitData => {
+          const [author, data] = commitData;
+          return {y: Number(data[dataIndex]), name: author, color: chooseColor(author)};
         })
-        .sort((a, b) => b[1] - a[1]);
-    return [output[0], output.slice(0, nbr)];
+        .sort((a, b) => b.y - a.y);
   }
 
   function getSubtitle() {
@@ -174,12 +178,12 @@
         './data.json'
     ).then(response => response.json());
 
+    document.getElementById('container').style.height = Object.keys(dataset).length * 30 + 'px';
 
     chart = Highcharts.chart('container', {
-      colors: ['#E0115F'],
       chart: {
         animation: {
-          duration: 500
+          duration: animationDuration
         },
         marginRight: 50
       },
@@ -231,7 +235,7 @@
         {
           type: 'bar',
           name: startValue,
-          data: getData(startValue)[1]
+          data: getData(startValue)
         }
       ],
       responsive: {
@@ -305,7 +309,7 @@
 
     chart.series[0].update({
       name: input.value,
-      data: getData(input.value)[1]
+      data: getData(input.value)
     });
   }
 
@@ -317,7 +321,7 @@
     button.className = 'fa fa-pause';
     chart.sequenceTimer = setInterval(function () {
       update(1);
-    }, 500);
+    }, animationDuration);
   }
 
   btn.addEventListener('click', function () {
