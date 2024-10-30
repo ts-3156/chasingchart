@@ -65,7 +65,7 @@
       targetYear = 2023,
       btn = document.getElementById('play-pause-button'),
       input = document.getElementById('play-range'),
-      animationDuration = 1000;
+      animationDuration = 500;
 
   let dataset, chart;
 
@@ -276,6 +276,9 @@
             }
           }
         }]
+      },
+      credits: {
+        enabled: false
       }
     });
   })();

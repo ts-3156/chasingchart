@@ -35,8 +35,8 @@ class Avatar
   }
 
   TEMPLATE = <<-"HTML"
-      <div style="display: flex; align-items: center;" data-name="<%= name %>">
-        <%= login %>
+      <div style="display: flex; align-items: center;">
+        <%= name %> - @<%= login %>
         <span>
           <img style="margin-left: 5px;" src="<%= org_avatar_url %>" width="15" height="15" alt="__<%= lang %>__" />
         </span>
