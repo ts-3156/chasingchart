@@ -32,6 +32,7 @@ class Avatar
       'kotlin' => 'https://avatars.githubusercontent.com/u/878437?s=200&v=4',
       'nodejs' => 'https://avatars.githubusercontent.com/u/9950313?s=200&v=4',
       'gcc' => 'https://avatars.githubusercontent.com/u/8382043?s=48&v=4',
+      'fortran' => 'https://avatars.githubusercontent.com/u/53436240?s=48&v=4',
   }
 
   TEMPLATE = <<-"HTML"
@@ -72,12 +73,13 @@ class GithubClient
       'kotlin' => 'JetBrains/kotlin',
       'nodejs' => 'nodejs/node',
       'gcc' => 'gcc-mirror/gcc',
+      'fortran' => 'fortran-lang/stdlib',
   }
 
   def initialize(access_token)
     Octokit.middleware = Faraday::RackBuilder.new do |builder|
       builder.use :http_cache, store: ActiveSupport::Cache.lookup_store(:file_store, 'github-cache'),
-                  logger: Logger.new(STDERR), shared_cache: false
+                  logger: Logger.new(nil), shared_cache: false
       builder.use Octokit::Response::RaiseError
       builder.adapter Faraday.default_adapter
     end
@@ -181,9 +183,11 @@ class IgnoreList
   def initialize(file)
     @list = Hash.new { |h, k| h[k] = Hash.new(false) }
 
-    File.read(file).each_line do |line|
-      lang, name = line.strip.split('/')
-      @list[lang][name] = true
+    if file
+      File.read(file).each_line do |line|
+        lang, name = line.strip.split('/')
+        @list[lang][name] = true
+      end
     end
   end
 
