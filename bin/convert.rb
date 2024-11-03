@@ -133,6 +133,8 @@ class Commit
 
   LINE_REGEXP = /^(?<date>\d\d\d\d-\d\d-\d\d)\t(?<lang>\w+)\t(?<hash>\w+)\t(?<name>.*)$/
 
+  @errors_count = 0
+
   class << self
     # git log -n 100000000 --date short --pretty=format:"%ad%x09__lang__%x09%h%x09%an" >commits.txt
     # yyyy-mm-dd lang hash name
@@ -146,6 +148,7 @@ class Commit
         new(date: matched[:date], name: matched[:name] || 'noname', lang: matched[:lang], hash: matched[:hash])
       else
         warn "Invalid line: (#{line}) matched=#{matched.inspect}"
+        (@errors_count += 1) >= 3 ? raise('Too many parse errors') : nil
         nil
       end
     end
