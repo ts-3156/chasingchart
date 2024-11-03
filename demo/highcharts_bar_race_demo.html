@@ -151,7 +151,8 @@
   }(Highcharts));
 
   function chooseColor(str) {
-    const colors = {ruby: '#ad1100', python: '#ffe362', php: '#6d7eb7', java: '#ef9c4f', perl: '#ff6600', rust: '#000000', go: '#bbbbbb', swift: '#f05237', kotlin: '#e901e1', nodejs: '#78ac65', gcc: '#6693d1', fortran: '#734e96'};
+    const colors = {ruby: '#ad1100', python: '#ffe362', php: '#6d7eb7', java: '#ef9c4f', perl: '#ff6600', rust: '#000000', go: '#bbbbbb',
+      swift: '#f05237', kotlin: '#e901e1', nodejs: '#78ac65', gcc: '#6693d1', fortran: '#734e96', 'home-assistant': '#1abcf2'};
     const matched = str.match(/__(\w+)__/) || [];
     return colors[matched[1]] || '#aaaaaa'
   }

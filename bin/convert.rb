@@ -33,6 +33,7 @@ class Avatar
       'nodejs' => 'https://avatars.githubusercontent.com/u/9950313?s=200&v=4',
       'gcc' => 'https://avatars.githubusercontent.com/u/8382043?s=48&v=4',
       'fortran' => 'https://avatars.githubusercontent.com/u/53436240?s=48&v=4',
+      'home-assistant' => 'https://avatars.githubusercontent.com/u/13844975?s=200&v=4',
   }
 
   TEMPLATE = <<-"HTML"
@@ -74,6 +75,7 @@ class GithubClient
       'nodejs' => 'nodejs/node',
       'gcc' => 'gcc-mirror/gcc',
       'fortran' => 'fortran-lang/stdlib',
+      'home-assistant' => 'home-assistant/core',
   }
 
   def initialize(access_token)
@@ -131,7 +133,7 @@ class Commit
     @grouped_time[type] = self.class.grouped_time(@date, type)
   end
 
-  LINE_REGEXP = /^(?<date>\d\d\d\d-\d\d-\d\d)\t(?<lang>\w+)\t(?<hash>\w+)\t(?<name>.*)$/
+  LINE_REGEXP = /^(?<date>\d\d\d\d-\d\d-\d\d)\t(?<lang>[\w-]+)\t(?<hash>\w+)\t(?<name>.*)$/
 
   @errors_count = 0
 
